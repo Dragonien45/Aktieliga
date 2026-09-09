@@ -748,32 +748,39 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
 
       let successCount = 0;
 
-      try {
-        // Kald til vores egen sikre Vercel Serverless API-route
-        const response = await fetch('/api/quotes');
-        if (!response.ok) {
-          throw new Error(`Serveren svarede med status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const quotes = data.quotes || {};
+      try {// Kald til vores egen sikre Vercel Serverless API-route
+            const response = await fetch('/api/quotes');
+            if (!response.ok) {
+                throw new Error(`Serveren svarede med status ${response.status}`);
+            }
 
-        allUniqueTickers.forEach(ticker => {
-          const q = quotes[ticker];
-          const mapping = TICKER_MAP[ticker];
+            const jsonResponse = await response.json();
+            const quotes = jsonResponse.data || jsonResponse;
 
-          if (q && typeof q.price === 'number') {
-            applyLivePriceToPortfolios(ticker, q.price, q.changePct || 0, mapping?.isDK);
-            
-            apiMetadata[ticker] = {
-              status: 'LIVE',
-              rawPrice: q.price,
-              currency: q.currency || (mapping?.isDK ? 'DKK' : 'USD'),
-              changePct: (q.changePct * 100).toFixed(2),
-              source: q.source || 'Server-API',
-              lastFetched: new Date()
-            };
-            successCount++;
+            allUniqueTickers.forEach(ticker => {
+                const q = quotes[ticker];
+                const mapping = STOCK_REGISTRY[ticker];
+
+                if (q && (q.price !== undefined || q.priceUSD !== undefined)) {
+                    const priceValue = q.price !== undefined ? q.price : (q.priceUSD * (jsonResponse.usdDkkRate || 6.85));
+                    
+                    // Opdater kurser i state for begge brugere
+                    [state.user.holdings, state.dad.holdings].forEach(holdings => {
+                        const h = holdings.find(item => item.ticker === ticker);
+                        if (h) {
+                            h.currentPrice = priceValue;
+                        }
+                    });
+
+                    apiMetadata[ticker] = {
+                        status: 'LIVE',
+                        rawPrice: q.priceUSD !== undefined ? q.priceUSD : q.price,
+                        currency: q.priceUSD !== undefined ? 'USD' : 'DKK',
+                        changePct: q.changePercent !== undefined ? q.changePercent : 0,
+                        source: q.source || 'Server-API',
+                        lastFetched: new Date()
+                    };
+                    successCount++;
           } else {
             fallbackMicroTick(ticker);
             apiMetadata[ticker] = {

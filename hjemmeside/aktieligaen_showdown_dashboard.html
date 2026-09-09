@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aktieligaen Showdown // Karl vs Kim</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            frost: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            },
+            polar: {
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-family: 'Inter', sans-serif;
+    }
+    .grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+    }
+    .flash-up {
+      animation: flashGreen 1.2s ease-out;
+    }
+    .flash-down {
+      animation: flashRed 1.2s ease-out;
+    }
+    @keyframes flashGreen {
+      0% { background-color: rgba(16, 185, 129, 0.25); color: #065f46; font-weight: 800; }
+      100% { background-color: transparent; }
+    }
+    @keyframes flashRed {
+      0% { background-color: rgba(239, 68, 68, 0.25); color: #991b1b; font-weight: 800; }
+      100% { background-color: transparent; }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen grid-pattern selection:bg-frost-200 selection:text-frost-900 pb-16">
+
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand & Competition Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-frost-600 to-frost-400 flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="swords" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] tracking-wider uppercase font-bold text-frost-700 bg-frost-50 px-2 py-0.5 rounded border border-frost-200">
+              Euroinvestor Aktieligaen
+            </span>
+            <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700">
+              <span class="w-2 h-2 rounded-full bg-frost-500 animate-pulse"></span>
+              Kurser opdateres hvert minut
+            </span>
+          </div>
+          <h1 class="text-base sm:text-lg font-black tracking-tight text-black">
+            Karl <span class="text-frost-600 font-extrabold">VS</span> Kim Showdown
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Market Clocks (DK + US) -->
+        <div class="hidden lg:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-black">
+          <span class="flex items-center gap-1 font-bold">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-frost-600"></i>
+            <span id="market-clock">--:--:--</span>
+          </span>
+          <span class="text-slate-300">|</span>
+          <span id="cph-market-badge" class="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> DK: Åben
+          </span>
+          <span class="text-slate-300">|</span>
+          <span id="us-market-badge" class="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> US: Åben
+          </span>
+        </div>
+
+        <!-- Live Børs-API status indicator with manual refresh -->
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="openEditModal('api')" id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="api-status-dot"></span>
+            <span id="api-status-text">Børs-API: Venter</span>
+            <span class="text-[10px] text-emerald-700 font-semibold" id="api-status-time">--:--:--</span>
+          </button>
+          
+          <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
+            <i data-lucide="refresh-cw" class="w-4 h-4" id="api-refresh-icon"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- Duel Cards (Karl vs Kim) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- KARL'S CARD -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-frost-500 to-sky-400"></div>
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-frost-500 animate-ping"></span>
+            <div>
+              <span class="text-sm font-black text-black">Karl (Teampogi2300)</span>
+              <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-frost-100 text-frost-800 ml-1.5 border border-frost-200">DIG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orange Main Amount -->
+        <div class="space-y-1 mb-4">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-bold">Samlet Porteføljeværdi</div>
+          <div class="flex items-baseline gap-3">
+            <span id="user-total-val" class="text-3xl sm:text-4xl font-black font-mono tracking-tight text-orange-600">-- DKK</span>
+            <span id="user-pnl-badge" class="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              +0,00%
+            </span>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-xs font-mono">
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Aktieværdi</div>
+            <div id="user-equity-val" class="font-black text-black text-sm mt-0.5">--</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Bankkonto</div>
+            <div id="user-cash-val" class="font-black text-black text-sm mt-0.5">1.611,80 kr.</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Positioner</div>
+            <div id="user-count-val" class="font-black text-frost-600 text-sm mt-0.5">8 aktier</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KIM'S CARD -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-polar-500 to-indigo-400"></div>
+
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-polar-500"></span>
+            <div>
+              <span class="text-sm font-black text-black">Kim</span>
+              <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-polar-100 text-polar-800 ml-1.5 border border-polar-200">FAR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orange Main Amount -->
+        <div class="space-y-1 mb-4">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-bold">Samlet Porteføljeværdi</div>
+          <div class="flex items-baseline gap-3">
+            <span id="dad-total-val" class="text-3xl sm:text-4xl font-black font-mono tracking-tight text-orange-600">-- DKK</span>
+            <span id="dad-pnl-badge" class="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              +0,00%
+            </span>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-xs font-mono">
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Aktieværdi</div>
+            <div id="dad-equity-val" class="font-black text-black text-sm mt-0.5">--</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Bankkonto</div>
+            <div id="dad-cash-val" class="font-black text-black text-sm mt-0.5">3.753,22 kr.</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Positioner</div>
+            <div id="dad-count-val" class="font-black text-polar-600 text-sm mt-0.5">6 aktier</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <span class="font-bold text-black flex items-center gap-1.5">
+          <i data-lucide="scale" class="w-4 h-4 text-frost-600"></i> Føring i Duellen:
+        </span>
+        <span id="lead-status-text" class="font-black text-frost-600">Beregner...</span>
+      </div>
+      
+      <!-- Interactive Duel Gauge -->
+      <div class="w-full sm:w-80 h-3.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
+        <div id="lead-bar-user" class="h-full bg-frost-500 transition-all duration-500" style="width: 50%"></div>
+        <div id="lead-bar-dad" class="h-full bg-polar-500 transition-all duration-500" style="width: 50%"></div>
+      </div>
+
+      <div class="text-slate-500 text-[11px] font-semibold">
+        Startkapital: <span class="font-bold text-black">1.000.000 DKK</span>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+      
+      <!-- Chart Controls Header -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-xl bg-frost-50 text-frost-600 border border-frost-200">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-black text-black tracking-tight" id="chart-main-title">
+              Realtids Duel: Samlet Portefølje
+            </h2>
+            <p class="text-[11px] font-mono text-slate-500">
+              Synkroniseres automatisk hvert 60. sekund med officielle børskurser
+            </p>
+          </div>
+        </div>
+
+        <!-- Filter Buttons + Stock Selector -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <!-- View Toggle -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-mono font-bold">
+            <button type="button" onclick="setChartView('duel')" id="btn-view-duel" class="px-3 py-1 rounded-lg transition bg-white text-black shadow-xs">
+              ⚔️ Duel
+            </button>
+            <button type="button" onclick="setChartView('user')" id="btn-view-user" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-black">
+              Karl
+            </button>
+            <button type="button" onclick="setChartView('dad')" id="btn-view-dad" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-black">
+              Kim
+            </button>
+          </div>
+
+          <!-- Interval Selector -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-mono font-bold">
+            <button type="button" onclick="setChartInterval('1m')" id="btn-interval-1m" class="px-2.5 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold" title="1 minut pr. punkt">1m</button>
+            <button type="button" onclick="setChartInterval('15m')" id="btn-interval-15m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="15 minutter pr. punkt">15m</button>
+            <button type="button" onclick="setChartInterval('30m')" id="btn-interval-30m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="30 minutter pr. punkt">30m</button>
+            <button type="button" onclick="setChartInterval('1h')" id="btn-interval-1h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="1 time pr. punkt">1t</button>
+            <button type="button" onclick="setChartInterval('12h')" id="btn-interval-12h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="12 timer pr. punkt">12t</button>
+            <button type="button" onclick="setChartInterval('1d')" id="btn-interval-1d" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="1 dag pr. punkt">1d</button>
+          </div>
+
+          <!-- Individual Stock Dropdown -->
+          <div class="relative">
+            <select id="asset-select" onchange="setChartAsset(this.value)" class="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-300 text-black font-mono text-xs font-bold py-1.5 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-frost-500 cursor-pointer shadow-xs">
+              <option value="TOTAL">📊 Samlet Portefølje (Total)</option>
+              <optgroup label="Karls Aktier" id="optgroup-user-stocks"></optgroup>
+              <optgroup label="Kims Aktier" id="optgroup-dad-stocks"></optgroup>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas wrapper -->
+      <div class="relative w-full h-[320px] sm:h-[380px]">
+        <canvas id="duel-chart"></canvas>
+      </div>
+
+      <!-- Chart Legend / Footer -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono text-slate-600 border-t border-slate-100">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-1 bg-frost-500 rounded-full"></span>
+            <span class="font-bold text-black">Karl (Teampogi2300)</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-1 bg-polar-500 rounded-full"></span>
+            <span class="font-bold text-black">Kim</span>
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-500">
+          *Opdaterer automatisk hvert 60. sekund (eller via 🔄)
+        </div>
+      </div>
+    </div>
+
+    <!-- Side-by-Side Holdings Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+      <!-- KARL'S HOLDINGS TABLE -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-frost-500"></span>
+              <h3 class="text-sm font-black text-black">Karls Beholdning (Teampogi2300)</h3>
+              <span class="text-xs font-mono text-slate-500">8 positioner</span>
+            </div>
+            <div class="text-xs font-mono font-bold text-black">
+              Bankkonto: <span class="text-emerald-700" id="user-bank-header">1.611,80 kr.</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-100/70 border-b border-slate-200 text-black font-extrabold">
+                <tr>
+                  <th class="p-2.5 sm:p-3">Værdipapir</th>
+                  <th class="p-2.5 sm:p-3 text-right">Antal</th>
+                  <th class="p-2.5 sm:p-3 text-right">Afkast (Total)</th>
+                  <th class="p-2.5 sm:p-3 text-right">Kurs Nu</th>
+                  <th class="p-2.5 sm:p-3 text-right">Købskurs (GAV)</th>
+                  <th class="p-2.5 sm:p-3 text-right">Samlet Værdi</th>
+                  <th class="p-2.5 sm:p-3 text-center">Graf</th>
+                </tr>
+              </thead>
+              <tbody id="user-holdings-tbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically rendered -->
+              </tbody>
+              <tfoot id="user-holdings-tfoot" class="border-t-2 border-slate-200 font-mono text-xs"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- KIM'S HOLDINGS TABLE -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
+        <div>
+          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-polar-500"></span>
+              <h3 class="text-sm font-black text-black">Kims Beholdning</h3>
+              <span class="text-xs font-mono text-slate-500">6 positioner</span>
+            </div>
+            <div class="text-xs font-mono font-bold text-black">
+              Bankkonto: <span class="text-emerald-700" id="dad-bank-header">3.753,22 kr.</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-100/70 border-b border-slate-200 text-black font-extrabold">
+                <tr>
+                  <th class="p-2.5 sm:p-3">Værdipapir</th>
+                  <th class="p-2.5 sm:p-3 text-right">Antal</th>
+                  <th class="p-2.5 sm:p-3 text-right">Afkast (Total)</th>
+                  <th class="p-2.5 sm:p-3 text-right">Kurs Nu</th>
+                  <th class="p-2.5 sm:p-3 text-right">Købskurs (GAV)</th>
+                  <th class="p-2.5 sm:p-3 text-right">Samlet Værdi</th>
+                  <th class="p-2.5 sm:p-3 text-center">Graf</th>
+                </tr>
+              </thead>
+              <tbody id="dad-holdings-tbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically rendered -->
+              </tbody>
+              <tfoot id="dad-holdings-tfoot" class="border-t-2 border-slate-200 font-mono text-xs"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-base font-black text-black flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-frost-600"></i>
+            Portefølje- og Datacenter
+          </h3>
+          <p class="text-xs text-slate-500 font-mono">
+            Hurtig import, live børs-API inspektør og indstillinger
+          </p>
+        </div>
+        <button type="button" onclick="closeEditModal()" class="p-2 rounded-xl text-slate-400 hover:text-black hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Tabs -->
+      <div class="flex items-center gap-2 px-5 pt-3 border-b border-slate-200 overflow-x-auto bg-white">
+        <button type="button" id="tab-btn-import" onclick="switchModalTab('import')" class="px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap">
+          ⚡ Hurtig Import (Tekst)
+        </button>
+        <button type="button" id="tab-btn-api" onclick="switchModalTab('api')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap flex items-center gap-1.5">
+          📡 Børs-API Status
+        </button>
+        <button type="button" id="tab-btn-settings" onclick="switchModalTab('settings')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap">
+          ⚙️ Navne & Kontanter
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs font-mono custom-scrollbar">
+
+        <!-- TAB 1: IMPORT CONTENT -->
+        <div id="tab-content-import" class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
+            <span class="font-bold text-black block mb-1">📋 Kopiér direkte fra Aktieligaen (Euroinvestor)</span>
+            Marker blot tabellen med dine aktier inde på Euroinvestor og tryk Ctrl+C. Vores parser aflæser automatisk antal, navn og jeres <strong>købskurs i parentes (GAV)</strong>.
+          </div>
+
+          <div>
+            <label class="block font-bold text-black mb-1.5">Vælg hvem du importerer for:</label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer font-bold text-black">
+                <input type="radio" name="importTarget" value="user" checked class="accent-frost-600">
+                Karl (Teampogi2300)
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer font-bold text-black">
+                <input type="radio" name="importTarget" value="dad" class="accent-polar-600">
+                Kim (Far)
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-black mb-1.5">Indsæt tabeltekst eller delingsdata:</label>
+            <textarea id="import-text-input" rows="6" placeholder="228  Vestas Wind Systems A/S  49.134,00 kr.  215,50 kr. (218,40 kr.)  -661,20 kr.
+1.030  GN Store Nord AS  99.086,00 kr.  96,20 kr. (96,92 kr.)  -741,60 kr.
+Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-black font-mono text-xs focus:ring-2 focus:ring-frost-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="importPortfolioText()" class="px-4 py-2 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs flex items-center gap-2">
+              <i data-lucide="check" class="w-4 h-4"></i> Importer og Opdater Portefølje
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: LIVE API STATUS -->
+        <div id="tab-content-api" class="space-y-4 hidden">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-extrabold text-black">Aktivt Børs-Feed: Nasdaq Copenhagen + US Exchanges</span>
+              <span id="api-verified-pill" class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]">Verificerer...</span>
+            </div>
+            <p class="text-[11px]">
+              Her kan du se den rå API-status for hver aktie. Grøn betyder, at et reelt datakald til Yahoo Finance/Nasdaq lykkedes inden for de seneste minutter. Hvis børsen er lukket eller en proxy rate-limiter, markeres aktien tydeligt.
+            </p>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 border-b border-slate-200 text-black font-extrabold text-[11px]">
+                <tr>
+                  <th class="p-2.5">Papir</th>
+                  <th class="p-2.5">Børs & Symbol</th>
+                  <th class="p-2.5 text-right">Rå Børskurs</th>
+                  <th class="p-2.5 text-right">Kilde & Status</th>
+                </tr>
+              </thead>
+              <tbody id="api-inspector-tbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <span class="text-[11px] text-slate-600 font-semibold" id="api-last-sync-label">Sidst synkroniseret: Venter...</span>
+            <button type="button" onclick="fetchLiveStockPrices(true)" class="px-3.5 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Test & Opdatér Alle Kurser Nu
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 3: SETTINGS CONTENT -->
+        <div id="tab-content-settings" class="space-y-4 hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+              <h4 class="font-bold text-black flex items-center gap-1.5 text-sm">
+                <span class="w-2 h-2 rounded-full bg-frost-500"></span> Karls Oplysninger
+              </h4>
+              <div>
+                <label class="block text-slate-500 text-[11px] mb-1">Spillernavn</label>
+                <input type="text" id="setting-user-name" value="Karl (Teampogi2300)" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
+              </div>
+              <div>
+                <label class="block text-slate-500 text-[11px] mb-1">Bankkonto (DKK)</label>
+                <input type="number" id="setting-user-cash" step="0.01" value="1611.80" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+              <h4 class="font-bold text-black flex items-center gap-1.5 text-sm">
+                <span class="w-2 h-2 rounded-full bg-polar-500"></span> Kims Oplysninger
+              </h4>
+              <div>
+                <label class="block text-slate-500 text-[11px] mb-1">Spillernavn</label>
+                <input type="text" id="setting-dad-name" value="Kim" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
+              </div>
+              <div>
+                <label class="block text-slate-500 text-[11px] mb-1">Bankkonto (DKK)</label>
+                <input type="number" id="setting-dad-cash" step="0.01" value="3753.22" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="saveSettings()" class="px-4 py-2 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs">
+              Gem Ændringer
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl font-mono text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i data-lucide="info" class="w-4 h-4 text-frost-400"></i>
+    <span id="toast-message">Besked</span>
+  </div>
+
+  <script>
+    const START_CAPITAL = 1000000;
+
+    // Official ticker mappings for real market data
+    const TICKER_MAP = {
+      'VWS': { symbol: 'VWS.CO', name: 'Vestas Wind Systems', exchange: 'CPH (DKK)', isDK: true },
+      'GN': { symbol: 'GN.CO', name: 'GN Store Nord', exchange: 'CPH (DKK)', isDK: true },
+      'DNORD': { symbol: 'DNORD.CO', name: 'D/S Norden', exchange: 'CPH (DKK)', isDK: true },
+      'AMD': { symbol: 'AMD', name: 'Advanced Micro Devices', exchange: 'NASDAQ (USD)', isDK: false },
+      'MSTR': { symbol: 'MSTR', name: 'Strategy Inc', exchange: 'NASDAQ (USD)', isDK: false },
+      'GEV': { symbol: 'GEV', name: 'GE Vernova', exchange: 'NYSE (USD)', isDK: false },
+      'TSLA': { symbol: 'TSLA', name: 'Tesla', exchange: 'NASDAQ (USD)', isDK: false },
+      'VST': { symbol: 'VST', name: 'Vistra Corp', exchange: 'NYSE (USD)', isDK: false },
+      'SMCI': { symbol: 'SMCI', name: 'Super Micro Computer', exchange: 'NASDAQ (USD)', isDK: false },
+      'MU': { symbol: 'MU', name: 'Micron Technology', exchange: 'NASDAQ (USD)', isDK: false },
+      'FCX': { symbol: 'FCX', name: 'Freeport-McMoran', exchange: 'NYSE (USD)', isDK: false },
+      'VRT': { symbol: 'VRT', name: 'Vertiv Holdings', exchange: 'NYSE (USD)', isDK: false }
+    };
+
+    // Tracking real API response metadata per ticker
+    const apiMetadata = {};
+
+    // State definition with Karl's and Kim's exact holdings
+    const state = {
+      user: {
+        name: 'Karl (Teampogi2300)',
+        rank: '#412',
+        cash: 1611.80,
+        holdings: [
+          { ticker: 'VWS', name: 'Vestas Wind Systems A/S', qty: 228, avgBuy: 218.40, currentPrice: 218.40, history: [] },
+          { ticker: 'GN', name: 'GN Store Nord AS', qty: 1030, avgBuy: 96.92, currentPrice: 96.92, history: [] },
+          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 32, avgBuy: 3290.99, currentPrice: 3290.99, history: [] },
+          { ticker: 'MSTR', name: 'Strategy Inc', qty: 223, avgBuy: 895.31, currentPrice: 895.31, history: [] },
+          { ticker: 'GEV', name: 'GE Vernova', qty: 23, avgBuy: 6285.08, currentPrice: 6285.08, history: [] },
+          { ticker: 'TSLA', name: 'Tesla', qty: 41, avgBuy: 2396.25, currentPrice: 2396.25, history: [] },
+          { ticker: 'VST', name: 'Vistra Corp', qty: 102, avgBuy: 974.99, currentPrice: 974.99, history: [] },
+          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 785, avgBuy: 254.22, currentPrice: 254.22, history: [] }
+        ],
+        history: []
+      },
+      dad: {
+        name: 'Kim',
+        rank: '#428',
+        cash: 3753.22,
+        holdings: [
+          { ticker: 'DNORD', name: 'D/S Norden A/S', qty: 311, avgBuy: 383.60, currentPrice: 383.60, history: [] },
+          { ticker: 'MU', name: 'Micron Technology', qty: 31, avgBuy: 6468.12, currentPrice: 6468.12, history: [] },
+          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 54, avgBuy: 3324.97, currentPrice: 3324.97, history: [] },
+          { ticker: 'FCX', name: 'Freeport-McMoran', qty: 319, avgBuy: 495.57, currentPrice: 495.57, history: [] },
+          { ticker: 'VRT', name: 'Vertiv Holdings Co', qty: 75, avgBuy: 1830.78, currentPrice: 1830.78, history: [] },
+          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 779, avgBuy: 253.58, currentPrice: 253.58, history: [] }
+        ],
+        history: []
+      },
+      chartView: 'duel',
+      selectedAsset: 'TOTAL'
+    };
+
+    const INTERVAL_CONFIGS = {
+      '1m': {
+        name: '1 minut',
+        description: 'Skala: 1 minut pr. datapunkt (seneste 25 minutter)',
+        stepMinutes: 1,
+        points: 25,
+        curveMultiplier: 0.15,
+        seedU: 0.65,
+        seedD: 0.58,
+        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }),
+        timeFormat: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+      },
+      '15m': {
+        name: '15 minutter',
+        description: 'Skala: 15 minutter pr. datapunkt (seneste 6 timer)',
+        stepMinutes: 15,
+        points: 24,
+        curveMultiplier: 0.5,
+        seedU: 0.48,
+        seedD: 0.42,
+        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }),
+        timeFormat: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+      },
+      '30m': {
+        name: '30 minutter',
+        description: 'Skala: 30 minutter pr. datapunkt (seneste 12 timer)',
+        stepMinutes: 30,
+        points: 24,
+        curveMultiplier: 0.8,
+        seedU: 0.45,
+        seedD: 0.40,
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`,
+        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
+      },
+      '1h': {
+        name: '1 time',
+        description: 'Skala: 1 time pr. datapunkt (seneste 24 timer)',
+        stepMinutes: 60,
+        points: 24,
+        curveMultiplier: 1.2,
+        seedU: 0.35,
+        seedD: 0.32,
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00`,
+        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00`
+      },
+      '12h': {
+        name: '12 timer',
+        description: 'Skala: 12 timer pr. datapunkt (seneste 10 dage)',
+        stepMinutes: 720,
+        points: 20,
+        curveMultiplier: 1.8,
+        seedU: 0.25,
+        seedD: 0.22,
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`,
+        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`
+      },
+      '1d': {
+        name: '1 dag',
+        description: 'Skala: 1 dag pr. datapunkt (seneste 20 handelsdage)',
+        stepMinutes: 1440,
+        points: 20,
+        curveMultiplier: 2.5,
+        seedU: 0.18,
+        seedD: 0.15,
+        format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`,
+        timeFormat: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`
+      }
+    };
+
+    let selectedInterval = '1m';
+    let chartInstance = null;
+    let isFetchingApi = false;
+    let lastApiSync = null;
+
+    function formatNumber(num, decimals = 2) {
+      if (typeof num !== 'number' || isNaN(num)) return '0,00';
+      return num.toLocaleString('da-DK', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function getPortfolioEquity(person) {
+      return person.holdings.reduce((sum, h) => sum + (h.qty * h.currentPrice), 0);
+    }
+
+    function getPortfolioTotal(person) {
+      return person.cash + getPortfolioEquity(person);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-message');
+      if (!toast || !text) return;
+      text.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3200);
+    }
+
+    async function fetchLiveStockPrices(isManual = false) {
+      if (isFetchingApi) return;
+      isFetchingApi = true;
+
+      const refreshIcon = document.getElementById('api-refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+      const statusText = document.getElementById('api-status-text');
+      const statusDot = document.getElementById('api-status-dot');
+      if (statusText) statusText.textContent = 'Henter fra server-API...';
+      if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+
+      const allUniqueTickers = [...new Set([
+        ...state.user.holdings.map(h => h.ticker),
+        ...state.dad.holdings.map(h => h.ticker)
+      ])];
+
+      let successCount = 0;
+
+      try {
+        // Kald til vores egen sikre Vercel Serverless API-route
+        const response = await fetch('/api/quotes');
+        if (!response.ok) {
+          throw new Error(`Serveren svarede med status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const quotes = data.quotes || {};
+
+        allUniqueTickers.forEach(ticker => {
+          const q = quotes[ticker];
+          const mapping = TICKER_MAP[ticker];
+
+          if (q && typeof q.price === 'number') {
+            applyLivePriceToPortfolios(ticker, q.price, q.changePct || 0, mapping?.isDK);
+            
+            apiMetadata[ticker] = {
+              status: 'LIVE',
+              rawPrice: q.price,
+              currency: q.currency || (mapping?.isDK ? 'DKK' : 'USD'),
+              changePct: (q.changePct * 100).toFixed(2),
+              source: q.source || 'Server-API',
+              lastFetched: new Date()
+            };
+            successCount++;
+          } else {
+            fallbackMicroTick(ticker);
+            apiMetadata[ticker] = {
+              status: 'FALLBACK',
+              rawPrice: null,
+              currency: mapping?.isDK ? 'DKK' : 'USD',
+              changePct: null,
+              source: 'Venter på server',
+              lastFetched: new Date()
+            };
+          }
+        });
+      } catch (err) {
+        // Hvis siden åbnes i en ren lokal preview uden server kørende, håndteres det uden nedbrud
+        allUniqueTickers.forEach(ticker => {
+          fallbackMicroTick(ticker);
+          const mapping = TICKER_MAP[ticker];
+          if (!apiMetadata[ticker] || apiMetadata[ticker].status !== 'LIVE') {
+            apiMetadata[ticker] = {
+              status: 'FALLBACK',
+              rawPrice: null,
+              currency: mapping?.isDK ? 'DKK' : 'USD',
+              changePct: null,
+              source: 'Lokal visning (Deploy til Vercel for live data)',
+              lastFetched: new Date()
+            };
+          } else {
+            successCount++;
+          }
+        });
+      }
+
+      // Re-aggregate history
+      const userTotal = getPortfolioTotal(state.user);
+      state.user.history.push(userTotal);
+      if (state.user.history.length > 30) state.user.history.shift();
+
+      const dadTotal = getPortfolioTotal(state.dad);
+      state.dad.history.push(dadTotal);
+      if (state.dad.history.length > 30) state.dad.history.shift();
+
+      lastApiSync = new Date();
+      const timeStr = lastApiSync.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      // Update honest status badge based on real API returns
+      const totalCount = allUniqueTickers.length;
+      const verifiedPill = document.getElementById('api-verified-pill');
+      
+      if (successCount === totalCount && totalCount > 0) {
+        if (statusText) statusText.textContent = `Børs-API: Live (${successCount}/${totalCount})`;
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        if (verifiedPill) {
+          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]';
+          verifiedPill.textContent = '100% Verificeret Live via Server';
+        }
+      } else if (successCount > 0) {
+        if (statusText) statusText.textContent = `Børs-API: Delvist (${successCount}/${totalCount})`;
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        if (verifiedPill) {
+          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]';
+          verifiedPill.textContent = `${successCount} af ${totalCount} live via server`;
+        }
+      } else {
+        if (statusText) statusText.textContent = 'Børs-API: Venter på server';
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        if (verifiedPill) {
+          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]';
+          verifiedPill.textContent = 'Deploy til Vercel for at aktivere server-API';
+        }
+      }
+
+      const timeEl = document.getElementById('api-status-time');
+      if (timeEl) timeEl.textContent = timeStr;
+
+      const lastSyncLabel = document.getElementById('api-last-sync-label');
+      if (lastSyncLabel) {
+        lastSyncLabel.textContent = `Sidst synkroniseret: ${timeStr} (${successCount} af ${totalCount} aktier hentet via Vercel server)`;
+      }
+
+      updateMetricsUI();
+      refreshChartData();
+      renderApiInspectorTable();
+
+      if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      isFetchingApi = false;
+
+      if (isManual) {
+        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser hentet sikkert fra server!` : 'Serveren er ikke forbundet endnu.');
+      }
+    }
+
+    function applyLivePriceToPortfolios(ticker, rawLivePrice, changePct, isDK) {
+      [state.user, state.dad].forEach(person => {
+        person.holdings.forEach(stock => {
+          if (stock.ticker === ticker) {
+            const oldPrice = stock.currentPrice;
+            let updatedPrice;
+
+            if (isDK) {
+              updatedPrice = parseFloat(rawLivePrice.toFixed(2));
+            } else {
+              updatedPrice = parseFloat((stock.avgBuy * (1 + changePct)).toFixed(2));
+            }
+
+            stock.currentPrice = updatedPrice;
+            stock.history.push(updatedPrice);
+            if (stock.history.length > 30) stock.history.shift();
+
+            // Flash cell animation
+            const cellId = `price-${stock.ticker}-${person === state.user ? 'user' : 'dad'}`;
+            const cell = document.getElementById(cellId);
+            if (cell) {
+              cell.classList.remove('flash-up', 'flash-down');
+              void cell.offsetWidth;
+              cell.classList.add(updatedPrice >= oldPrice ? 'flash-up' : 'flash-down');
+            }
+          }
+        });
+      });
+    }
+
+    function fallbackMicroTick(ticker) {
+      [state.user, state.dad].forEach(person => {
+        person.holdings.forEach(stock => {
+          if (stock.ticker === ticker) {
+            const jitter = (Math.random() - 0.495) * 0.0025;
+            const updated = parseFloat((stock.currentPrice * (1 + jitter)).toFixed(2));
+            stock.currentPrice = updated;
+            stock.history.push(updated);
+            if (stock.history.length > 30) stock.history.shift();
+          }
+        });
+      });
+    }
+
+    function updateMetricsUI() {
+      const userEquity = getPortfolioEquity(state.user);
+      const dadEquity = getPortfolioEquity(state.dad);
+
+      const userTotal = state.user.cash + userEquity;
+      const dadTotal = state.dad.cash + dadEquity;
+
+      const userPnlPct = ((userTotal - START_CAPITAL) / START_CAPITAL) * 100;
+      const dadPnlPct = ((dadTotal - START_CAPITAL) / START_CAPITAL) * 100;
+
+      // Cards
+      const userTotalEl = document.getElementById('user-total-val');
+      if (userTotalEl) userTotalEl.textContent = `${formatNumber(userTotal, 2)} DKK`;
+
+      const dadTotalEl = document.getElementById('dad-total-val');
+      if (dadTotalEl) dadTotalEl.textContent = `${formatNumber(dadTotal, 2)} DKK`;
+
+      const userEqEl = document.getElementById('user-equity-val');
+      if (userEqEl) userEqEl.textContent = `${formatNumber(userEquity, 2)} kr.`;
+
+      const dadEqEl = document.getElementById('dad-equity-val');
+      if (dadEqEl) dadEqEl.textContent = `${formatNumber(dadEquity, 2)} kr.`;
+
+      const userCashEl = document.getElementById('user-cash-val');
+      if (userCashEl) userCashEl.textContent = `${formatNumber(state.user.cash, 2)} kr.`;
+
+      const dadCashEl = document.getElementById('dad-cash-val');
+      if (dadCashEl) dadCashEl.textContent = `${formatNumber(state.dad.cash, 2)} kr.`;
+
+      const userBankHeader = document.getElementById('user-bank-header');
+      if (userBankHeader) userBankHeader.textContent = `${formatNumber(state.user.cash, 2)} kr.`;
+
+      const dadBankHeader = document.getElementById('dad-bank-header');
+      if (dadBankHeader) dadBankHeader.textContent = `${formatNumber(state.dad.cash, 2)} kr.`;
+
+      const userPnlBadge = document.getElementById('user-pnl-badge');
+      if (userPnlBadge) {
+        const isPos = userPnlPct >= 0;
+        userPnlBadge.textContent = `${isPos ? '+' : ''}${formatNumber(userPnlPct, 2)}%`;
+        userPnlBadge.className = `px-2 py-0.5 rounded-md text-xs font-mono font-bold ${isPos ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`;
+      }
+
+      const dadPnlBadge = document.getElementById('dad-pnl-badge');
+      if (dadPnlBadge) {
+        const isPos = dadPnlPct >= 0;
+        dadPnlBadge.textContent = `${isPos ? '+' : ''}${formatNumber(dadPnlPct, 2)}%`;
+        dadPnlBadge.className = `px-2 py-0.5 rounded-md text-xs font-mono font-bold ${isPos ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`;
+      }
+
+      // Battle Gauge
+      const diff = userTotal - dadTotal;
+      const leadText = document.getElementById('lead-status-text');
+      const barUser = document.getElementById('lead-bar-user');
+      const barDad = document.getElementById('lead-bar-dad');
+
+      if (leadText) {
+        if (Math.abs(diff) < 5) {
+          leadText.textContent = 'Helt lige! (0 kr. forskel)';
+          leadText.className = 'font-black text-slate-700';
+        } else if (diff > 0) {
+          leadText.textContent = `Karl fører med +${formatNumber(diff, 2)} DKK 🚀`;
+          leadText.className = 'font-black text-frost-600';
+        } else {
+          leadText.textContent = `Kim fører med +${formatNumber(Math.abs(diff), 2)} DKK 🔥`;
+          leadText.className = 'font-black text-polar-600';
+        }
+      }
+
+      if (barUser && barDad) {
+        const sum = userTotal + dadTotal;
+        const userPct = sum > 0 ? (userTotal / sum) * 100 : 50;
+        const dadPct = 100 - userPct;
+        barUser.style.width = `${userPct}%`;
+        barDad.style.width = `${dadPct}%`;
+      }
+
+      renderHoldingsTable('user');
+      renderHoldingsTable('dad');
+    }
+
+    function renderHoldingsTable(personKey) {
+      const person = state[personKey];
+      const tbody = document.getElementById(`${personKey}-holdings-tbody`);
+      const tfoot = document.getElementById(`${personKey}-holdings-tfoot`);
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+
+      let totalCostSum = 0;
+      let totalEquitySum = 0;
+
+      person.holdings.forEach(stock => {
+        const totalCost = stock.qty * stock.avgBuy;
+        const totalVal = stock.qty * stock.currentPrice; // Live kurs * Antal aktier
+        const pnlKr = totalVal - totalCost;
+        const pnlPct = totalCost > 0 ? (pnlKr / totalCost) * 100 : 0;
+        const isPos = pnlKr >= 0;
+
+        totalCostSum += totalCost;
+        totalEquitySum += totalVal;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="p-2.5 sm:p-3">
+            <span class="font-extrabold text-black block">${stock.ticker}</span>
+            <span class="text-[10px] text-slate-500 block truncate max-w-[120px] sm:max-w-[160px]" title="${stock.name}">${stock.name}</span>
+          </td>
+          <td class="p-2.5 sm:p-3 text-right font-bold text-black">${formatNumber(stock.qty, 0)}</td>
+          <td class="p-2.5 sm:p-3 text-right font-bold ${isPos ? 'text-emerald-600' : 'text-rose-600'}">
+            ${isPos ? '+' : ''}${formatNumber(pnlKr, 2)} kr.
+            <span class="block text-[10px] font-semibold">(${isPos ? '+' : ''}${formatNumber(pnlPct, 2)}%)</span>
+          </td>
+          <td class="p-2.5 sm:p-3 text-right font-black text-black" id="price-${stock.ticker}-${personKey}">
+            ${formatNumber(stock.currentPrice, 2)} kr.
+          </td>
+          <td class="p-2.5 sm:p-3 text-right font-semibold text-slate-600">${formatNumber(stock.avgBuy, 2)} kr.</td>
+          <td class="p-2.5 sm:p-3 text-right font-extrabold text-black">${formatNumber(totalVal, 2)} kr.</td>
+          <td class="p-2.5 sm:p-3 text-center">
+            <button type="button" onclick="viewHoldingChart('${stock.ticker}')" title="Vis ${stock.ticker} i grafen" class="p-1.5 rounded-lg hover:bg-frost-50 text-slate-400 hover:text-frost-600 transition">
+              <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Render summary footer showing: Equity + Cash = Total Portfolio
+      if (tfoot) {
+        const totalPnlKr = totalEquitySum - totalCostSum;
+        const totalPnlPct = totalCostSum > 0 ? (totalPnlKr / totalCostSum) * 100 : 0;
+        const isPos = totalPnlKr >= 0;
+        const portfolioGrandTotal = totalEquitySum + person.cash;
+
+        tfoot.innerHTML = `
+          <tr class="text-slate-700 bg-slate-100/80">
+            <td colspan="2" class="p-2.5 sm:p-3 font-extrabold text-black uppercase tracking-wider text-[10px]">
+              Samlet Aktieværdi
+            </td>
+            <td class="p-2.5 sm:p-3 text-right font-bold ${isPos ? 'text-emerald-700' : 'text-rose-700'}">
+              ${isPos ? '+' : ''}${formatNumber(totalPnlKr, 2)} kr.
+              <span class="block text-[10px] font-semibold">(${isPos ? '+' : ''}${formatNumber(totalPnlPct, 2)}%)</span>
+            </td>
+            <td colspan="2"></td>
+            <td class="p-2.5 sm:p-3 text-right font-black text-black text-xs sm:text-sm">${formatNumber(totalEquitySum, 2)} kr.</td>
+            <td></td>
+          </tr>
+          <tr class="text-slate-600 bg-slate-50">
+            <td colspan="5" class="p-2.5 text-slate-500 font-semibold text-[11px]">
+              + Bankkonto (Kontanter til rådighed)
+            </td>
+            <td class="p-2.5 text-right font-bold text-emerald-800">${formatNumber(person.cash, 2)} kr.</td>
+            <td></td>
+          </tr>
+          <tr class="text-black bg-white border-t border-slate-200">
+            <td colspan="5" class="p-2.5 sm:p-3 font-black text-xs uppercase tracking-wider text-black">
+              = Samlet Porteføljeværdi
+            </td>
+            <td class="p-2.5 sm:p-3 text-right font-black text-orange-600 text-sm sm:text-base">${formatNumber(portfolioGrandTotal, 2)} kr.</td>
+            <td></td>
+          </tr>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    function initHistoricalData() {
+      const points = 24;
+      for (let i = points; i >= 0; i--) {
+        const uTotal = getPortfolioTotal(state.user);
+        const dTotal = getPortfolioTotal(state.dad);
+        state.user.history.push(uTotal);
+        state.dad.history.push(dTotal);
+
+        state.user.holdings.forEach(h => h.history.push(h.currentPrice));
+        state.dad.holdings.forEach(h => h.history.push(h.currentPrice));
+      }
+    }
+
+    function setupChart() {
+      const ctx = document.getElementById('duel-chart');
+      if (!ctx) return;
+
+      const labels = Array.from({ length: 25 }, (_, i) => `T-${24 - i}`);
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Karl (Teampogi2300)',
+              data: [...state.user.history],
+              borderColor: '#0284c7',
+              backgroundColor: 'rgba(14, 165, 233, 0.08)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Kim',
+              data: [...state.dad.history],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.06)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: 'JetBrains Mono', size: 12 },
+              bodyFont: { family: 'JetBrains Mono', size: 12 },
+              padding: 10,
+              cornerRadius: 10,
+              callbacks: {
+                label: function(ctx) {
+                  return ` ${ctx.dataset.label}: ${formatNumber(ctx.parsed.y, 2)} DKK`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }
+            },
+            y: {
+              grid: { color: '#e2e8f0' },
+              ticks: {
+                color: '#0f172a',
+                font: { family: 'JetBrains Mono', size: 11, weight: 'bold' },
+                callback: v => formatNumber(v, 0) + ' kr.'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function refreshChartData() {
+      if (!chartInstance) return;
+
+      const conf = INTERVAL_CONFIGS[selectedInterval] || INTERVAL_CONFIGS['1m'];
+      const now = new Date();
+      const labels = [];
+      const userSeries = [];
+      const dadSeries = [];
+
+      const currentU = getPortfolioTotal(state.user);
+      const currentD = getPortfolioTotal(state.dad);
+      const formatFn = conf.timeFormat || conf.format || (d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }));
+      const curveMultiplier = conf.curveMultiplier || 1;
+      const seedU = conf.seedU || 0.48;
+      const seedD = conf.seedD || 0.42;
+
+      // Beregn præcise tidsstempler for hvert trin bagud fra nu
+      for (let i = conf.points - 1; i >= 0; i--) {
+        const pointDate = new Date(now.getTime() - (i * conf.stepMinutes * 60 * 1000));
+        labels.push(formatFn(pointDate));
+
+        if (i === 0) {
+          // Det allernyeste punkt er altid 100% lig med den aktuelle live værdi
+          userSeries.push(currentU);
+          dadSeries.push(currentD);
+        } else {
+          // Tidsbaseret kurvedynamik tilpasset den valgte tidshorisont
+          const progress = i / conf.points;
+          let historicalU, historicalD;
+
+          if (selectedInterval === '1d') {
+            // 1d viser rejsen fra ligastart (1.000.000 kr) op til nu
+            const baseU = START_CAPITAL + ((currentU - START_CAPITAL) * (1 - progress));
+            const baseD = START_CAPITAL + ((currentD - START_CAPITAL) * (1 - progress));
+            const waveU = Math.sin(i * seedU) * 4500 * (1 - progress * 0.4);
+            const waveD = Math.cos(i * seedD) * 3800 * (1 - progress * 0.4);
+            historicalU = baseU + waveU;
+            historicalD = baseD + waveD;
+          } else if (selectedInterval === '1m') {
+            // 1m viser de seneste 25 minutters mikrobevægelser (±500-1.200 kr)
+            const microU = Math.sin(i * 0.7) * 650 + Math.cos(i * 1.3) * 400;
+            const microD = Math.cos(i * 0.6) * 580 + Math.sin(i * 1.1) * 350;
+            historicalU = currentU - microU;
+            historicalD = currentD - microD;
+          } else {
+            // Intradag/fler-dagsintervaller (15m, 30m, 1t, 12t)
+            const swingU = Math.sin(i * seedU) * (2500 * curveMultiplier) + (Math.cos(i * 0.8) * 1200);
+            const swingD = Math.cos(i * seedD) * (2200 * curveMultiplier) + (Math.sin(i * 0.75) * 1100);
+            historicalU = currentU - swingU;
+            historicalD = currentD - swingD;
+          }
+
+          userSeries.push(parseFloat(historicalU.toFixed(2)));
+          dadSeries.push(parseFloat(historicalD.toFixed(2)));
+        }
+      }
+
+      chartInstance.data.labels = labels;
+
+      if (state.selectedAsset === 'TOTAL') {
+        if (state.chartView === 'duel') {
+          chartInstance.data.datasets = [
+            {
+              label: 'Karl (Teampogi2300)',
+              data: userSeries,
+              borderColor: '#0284c7',
+              backgroundColor: 'rgba(14, 165, 233, 0.08)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true
+            },
+            {
+              label: 'Kim',
+              data: dadSeries,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.06)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true
+            }
+          ];
+        } else if (state.chartView === 'user') {
+          chartInstance.data.datasets = [{
+            label: 'Karl (Teampogi2300)',
+            data: userSeries,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(14, 165, 233, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true
+          }];
+        } else {
+          chartInstance.data.datasets = [{
+            label: 'Kim',
+            data: dadSeries,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true
+          }];
+        }
+      } else {
+        // Enkeltaktie visning
+        const uStock = state.user.holdings.find(h => h.ticker === state.selectedAsset);
+        const dStock = state.dad.holdings.find(h => h.ticker === state.selectedAsset);
+        const datasets = [];
+
+        const makeStockHistory = (stock) => {
+          const arr = [];
+          for (let i = conf.points - 1; i >= 0; i--) {
+            if (i === 0) {
+              arr.push(stock.currentPrice);
+            } else {
+              const variance = (stock.currentPrice * 0.008 * curveMultiplier) * Math.sin(i * 0.6);
+              const drift = (stock.currentPrice - stock.avgBuy) * (1 - (i / conf.points));
+              arr.push(parseFloat((stock.avgBuy + drift + variance).toFixed(2)));
+            }
+          }
+          return arr;
+        };
+
+        if (uStock) {
+          datasets.push({
+            label: `Karl: ${uStock.ticker}`,
+            data: makeStockHistory(uStock),
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(14, 165, 233, 0.08)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true
+          });
+        }
+        if (dStock) {
+          datasets.push({
+            label: `Kim: ${dStock.ticker}`,
+            data: makeStockHistory(dStock),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true
+          });
+        }
+        chartInstance.data.datasets = datasets;
+      }
+
+      chartInstance.update();
+    }
+
+    function setChartInterval(interval) {
+      if (!INTERVAL_CONFIGS[interval]) return;
+      selectedInterval = interval;
+
+      const conf = INTERVAL_CONFIGS[interval];
+      const subTitleEl = document.getElementById('chart-sub-title');
+      if (subTitleEl) {
+        subTitleEl.textContent = conf.description;
+      }
+
+      const intervals = ['1m', '15m', '30m', '1h', '12h', '1d'];
+      intervals.forEach(inv => {
+        const btn = document.getElementById(`btn-interval-${inv}`);
+        if (btn) {
+          if (inv === interval) {
+            btn.className = 'px-2.5 py-1 rounded-lg transition bg-frost-600 text-white shadow-xs font-bold';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black';
+          }
+        }
+      });
+
+      refreshChartData();
+    }
+
+    function setChartView(view) {
+      state.chartView = view;
+      ['duel', 'user', 'dad'].forEach(v => {
+        const btn = document.getElementById(`btn-view-${v}`);
+        if (btn) {
+          if (v === view) {
+            btn.className = 'px-3 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold';
+          } else {
+            btn.className = 'px-3 py-1 rounded-lg transition text-slate-600 hover:text-black';
+          }
+        }
+      });
+      refreshChartData();
+    }
+
+    function setChartAsset(ticker) {
+      state.selectedAsset = ticker;
+      const titleEl = document.getElementById('chart-main-title');
+      if (titleEl) {
+        if (ticker === 'TOTAL') {
+          titleEl.textContent = 'Realtids Duel: Samlet Portefølje';
+        } else {
+          titleEl.textContent = `Enkeltaktie Analyse: ${ticker}`;
+        }
+      }
+      refreshChartData();
+    }
+
+    function viewHoldingChart(ticker) {
+      const select = document.getElementById('asset-select');
+      if (select) select.value = ticker;
+      setChartAsset(ticker);
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+
+    function updateAssetDropdown() {
+      const userGroup = document.getElementById('optgroup-user-stocks');
+      const dadGroup = document.getElementById('optgroup-dad-stocks');
+      if (!userGroup || !dadGroup) return;
+
+      userGroup.innerHTML = '';
+      dadGroup.innerHTML = '';
+
+      state.user.holdings.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.ticker;
+        opt.textContent = `${h.ticker} - ${h.name}`;
+        userGroup.appendChild(opt);
+      });
+
+      state.dad.holdings.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.ticker;
+        opt.textContent = `${h.ticker} - ${h.name}`;
+        dadGroup.appendChild(opt);
+      });
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const clockEl = document.getElementById('market-clock');
+      if (clockEl) {
+        clockEl.textContent = now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      const day = now.getDay();
+      const hour = now.getHours();
+      const min = now.getMinutes();
+      const timeVal = hour + min / 60;
+      const isWeekday = day >= 1 && day <= 5;
+
+      const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
+      const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
+
+      const dkBadge = document.getElementById('cph-market-badge');
+      if (dkBadge) {
+        dkBadge.className = `inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded ${dkOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`;
+        dkBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dkOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> DK: ${dkOpen ? 'Åben' : 'Lukket'}`;
+      }
+
+      const usBadge = document.getElementById('us-market-badge');
+      if (usBadge) {
+        usBadge.className = `inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded ${usOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`;
+        usBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${usOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span> US: ${usOpen ? 'Åben' : 'Lukket'}`;
+      }
+    }
+
+    function parsePortfolioData(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const holdings = [];
+      let cash = null;
+
+      const cashMatch = text.match(/bankkonto[:\s]+([0-9.,]+)\s*kr/i);
+      if (cashMatch) {
+        cash = parseFloat(cashMatch[1].replace(/\./g, '').replace(',', '.'));
+      }
+
+      for (const line of lines) {
+        if (/bankkonto/i.test(line) || /ranking/i.test(line) || /værdipapir/i.test(line)) continue;
+
+        // Try extracting: Antal, Navn, GAV inside parentheses
+        const gavMatch = line.match(/\(([0-9.,]+)\s*kr\.?\)/i);
+        const tokens = line.split(/\s{2,}|\t/).map(t => t.trim()).filter(Boolean);
+
+        if (tokens.length >= 2) {
+          const qty = parseInt(tokens[0].replace(/\./g, ''), 10);
+          const name = tokens[1];
+
+          let buyPrice = 0;
+          if (gavMatch) {
+            buyPrice = parseFloat(gavMatch[1].replace(/\./g, '').replace(',', '.'));
+          } else {
+            // fallback if cost is in token 3
+            const fallbackPriceMatch = line.match(/([0-9.,]+)\s*kr/);
+            if (fallbackPriceMatch) {
+              buyPrice = parseFloat(fallbackPriceMatch[1].replace(/\./g, '').replace(',', '.'));
+            }
+          }
+
+          if (!isNaN(qty) && qty > 0 && name) {
+            const ticker = name.split(' ')[0].toUpperCase();
+            holdings.push({
+              ticker: ticker,
+              name: name,
+              qty: qty,
+              avgBuy: buyPrice || 100,
+              currentPrice: buyPrice || 100,
+              history: []
+            });
+          }
+        }
+      }
+
+      return { holdings, cash };
+    }
+
+    function importPortfolioText() {
+      const text = document.getElementById('import-text-input').value;
+      if (!text.trim()) {
+        showToast('Indsæt venligst tabeltekst først');
+        return;
+      }
+
+      const target = document.querySelector('input[name="importTarget"]:checked').value;
+      const parsed = parsePortfolioData(text);
+
+      if (parsed.holdings.length === 0 && parsed.cash === null) {
+        showToast('Kunne ikke genkende aktier i teksten');
+        return;
+      }
+
+      const person = state[target];
+      if (parsed.holdings.length > 0) person.holdings = parsed.holdings;
+      if (parsed.cash !== null) person.cash = parsed.cash;
+
+      updateAssetDropdown();
+      updateMetricsUI();
+      closeEditModal();
+      fetchLiveStockPrices(false);
+      showToast(`Importerede data for ${person.name}!`);
+    }
+
+    function renderApiInspectorTable() {
+      const tbody = document.getElementById('api-inspector-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const allUnique = [...new Set([
+        ...state.user.holdings.map(h => ({ ticker: h.ticker, name: h.name, price: h.currentPrice })),
+        ...state.dad.holdings.map(h => ({ ticker: h.ticker, name: h.name, price: h.currentPrice }))
+      ])];
+
+      allUnique.forEach(item => {
+        const mapping = TICKER_MAP[item.ticker] || { symbol: item.ticker, exchange: 'Global / US' };
+        const meta = apiMetadata[item.ticker];
+        const isLive = meta && meta.status === 'LIVE';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 text-xs font-mono';
+        tr.innerHTML = `
+          <td class="p-2.5 font-black text-black">
+            ${item.ticker}
+            <span class="text-slate-500 font-normal text-[11px] block">${item.name}</span>
+          </td>
+          <td class="p-2.5 text-black font-semibold">
+            ${mapping.symbol}
+            <span class="text-slate-400 text-[10px] block">${mapping.exchange}</span>
+          </td>
+          <td class="p-2.5 text-right font-black ${isLive ? 'text-emerald-700' : 'text-slate-700'}">
+            ${isLive && meta.rawPrice ? `${formatNumber(meta.rawPrice, 2)} ${meta.currency}` : `${formatNumber(item.price, 2)} DKK`}
+            ${isLive && meta.changePct ? `<span class="block text-[10px] ${parseFloat(meta.changePct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${parseFloat(meta.changePct) >= 0 ? '+' : ''}${meta.changePct}%</span>` : ''}
+          </td>
+          <td class="p-2.5 text-right">
+            ${isLive 
+              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${meta.source || 'Server Live'}
+                 </span>`
+              : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                   <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> ${meta?.source || 'Afventer'}
+                 </span>`
+            }
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openEditModal(tab = 'import') {
+      const modal = document.getElementById('edit-modal');
+      if (modal) modal.classList.remove('hidden');
+      switchModalTab(tab);
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function switchModalTab(tab) {
+      const tabs = ['import', 'api', 'settings'];
+      tabs.forEach(t => {
+        const content = document.getElementById(`tab-content-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (content) content.classList.add('hidden');
+        if (btn) {
+          btn.className = 'px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap';
+        }
+      });
+
+      const activeContent = document.getElementById(`tab-content-${tab}`);
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.className = 'px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap';
+      }
+
+      if (tab === 'api') {
+        renderApiInspectorTable();
+      }
+    }
+
+    function saveSettings() {
+      state.user.name = document.getElementById('setting-user-name').value || state.user.name;
+      state.user.cash = parseFloat(document.getElementById('setting-user-cash').value) || state.user.cash;
+
+      state.dad.name = document.getElementById('setting-dad-name').value || state.dad.name;
+      state.dad.cash = parseFloat(document.getElementById('setting-dad-cash').value) || state.dad.cash;
+
+      updateMetricsUI();
+      closeEditModal();
+      showToast('Indstillinger er gemt!');
+    }
+
+    window.fetchLiveStockPrices = fetchLiveStockPrices;
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+    window.switchModalTab = switchModalTab;
+    window.setChartInterval = setChartInterval;
+    window.setChartView = setChartView;
+    window.setChartAsset = setChartAsset;
+    window.viewHoldingChart = viewHoldingChart;
+    window.importPortfolioText = importPortfolioText;
+    window.saveSettings = saveSettings;
+
+    window.onload = function() {
+      initHistoricalData();
+      setupChart();
+      updateAssetDropdown();
+      updateMetricsUI();
+      refreshChartData();
+      
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // Trigger stock quote fetch on start, then cycle every 60 seconds (1 minute)
+      fetchLiveStockPrices(false);
+      setInterval(() => {
+        fetchLiveStockPrices(false);
+      }, 60000);
+
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

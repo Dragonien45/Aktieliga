@@ -1,12 +1,6 @@
-export default async function handler(req, res) {
-  // Tillad kun GET-forespørgsler
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export default async function handler(request) {
   const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
-  // 1. Definition af aktier
   const DANISH_TICKERS = {
     VWS: 'VWS.CO',
     GN: 'GN.CO',
@@ -14,93 +8,96 @@ export default async function handler(req, res) {
   };
 
   const US_TICKERS = ['AMD', 'MSTR', 'GEV', 'TSLA', 'VST', 'SMCI', 'MU', 'FCX', 'VRT'];
-
   const results = {};
 
   try {
-    // 2. Hent danske aktier fra Yahoo Finance på serveren
+    // 1. Hent USD/DKK valutakurs fra Yahoo
+    let usdDkkRate = 6.85;
+    try {
+      const fxResp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/USDDKK=X?interval=1d&range=1d', {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      if (fxResp.ok) {
+        const fxData = await fxResp.json();
+        const rate = fxData?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if (rate) usdDkkRate = rate;
+      }
+    } catch (e) {
+      // Falder tilbage på 6.85 hvis valutakaldet fejler
+    }
+
+    // 2. Yahoo Finance (Danske aktier)
     await Promise.all(
       Object.entries(DANISH_TICKERS).map(async ([symbol, yahooSymbol]) => {
         try {
           const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1m&range=1d`;
-          const response = await fetch(url, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            }
+          const resp = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
           });
-
-          if (!response.ok) {
-            results[symbol] = { error: `Yahoo HTTP ${response.status}` };
-            return;
+          if (resp.ok) {
+            const data = await resp.json();
+            const meta = data?.chart?.result?.[0]?.meta;
+            if (meta && meta.regularMarketPrice) {
+              const current = meta.regularMarketPrice;
+              const prev = meta.chartPreviousClose || meta.previousClose || current;
+              results[symbol] = {
+                price: parseFloat(current.toFixed(2)),
+                changePercent: prev ? parseFloat((((current - prev) / prev) * 100).toFixed(2)) : 0,
+                source: 'Yahoo Finance (Server)'
+              };
+            }
           }
-
-          const data = await response.json();
-          const meta = data?.chart?.result?.[0]?.meta;
-
-          if (meta && meta.regularMarketPrice) {
-            const current = meta.regularMarketPrice;
-            const prevClose = meta.chartPreviousClose || meta.previousClose || current;
-            const changePercent = prevClose ? ((current - prevClose) / prevClose) * 100 : 0;
-
-            results[symbol] = {
-              price: current,
-              changePercent: parseFloat(changePercent.toFixed(2)),
-              source: 'Yahoo Finance (Server)'
-            };
-          } else {
-            results[symbol] = { error: 'Ugyldigt format fra Yahoo' };
-          }
-        } catch (err) {
-          results[symbol] = { error: err.message };
+        } catch (e) {
+          results[symbol] = { error: e.message };
         }
       })
     );
 
-    // 3. Hent amerikanske aktier fra Finnhub på serveren
-    if (!FINNHUB_API_KEY) {
-      US_TICKERS.forEach(sym => {
-        results[sym] = { error: 'FINNHUB_API_KEY mangler i Environment Variables på Vercel' };
-      });
-    } else {
+    // 3. Finnhub (US aktier omregnet til DKK)
+    if (FINNHUB_API_KEY) {
       await Promise.all(
         US_TICKERS.map(async (symbol) => {
           try {
             const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
-            const response = await fetch(url);
-
-            if (!response.ok) {
-              results[symbol] = { error: `Finnhub HTTP ${response.status}` };
-              return;
+            const resp = await fetch(url);
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data && data.c) {
+                const priceInDkk = data.c * usdDkkRate;
+                results[symbol] = {
+                  price: parseFloat(priceInDkk.toFixed(2)),
+                  priceUSD: data.c,
+                  changePercent: data.dp !== null ? parseFloat(data.dp.toFixed(2)) : 0,
+                  source: 'Finnhub (Server)'
+                };
+              }
             }
-
-            const data = await response.json();
-
-            // Finnhub returnerer: c = current price, dp = percentage change
-            if (data && data.c !== undefined && data.c !== 0) {
-              results[symbol] = {
-                priceUSD: data.c,
-                changePercent: data.dp !== null ? parseFloat(data.dp.toFixed(2)) : 0,
-                source: 'Finnhub (Server)'
-              };
-            } else {
-              results[symbol] = { error: 'Ingen kurs returneret fra Finnhub' };
-            }
-          } catch (err) {
-            results[symbol] = { error: err.message };
+          } catch (e) {
+            results[symbol] = { error: e.message };
           }
         })
       );
+    } else {
+      US_TICKERS.forEach(s => {
+        results[s] = { error: 'FINNHUB_API_KEY mangler på Vercel' };
+      });
     }
 
-    // 4. Returner samlet data med CORS-headers og cache-begrænsning
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
-    return res.status(200).json({
-      timestamp: new Date().toISOString(),
-      data: results
+    return new Response(
+      JSON.stringify({ timestamp: new Date().toISOString(), usdDkkRate, data: results }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 's-maxage=30, stale-while-revalidate=60'
+        }
+      }
+    );
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
     });
-
-  } catch (globalError) {
-    return res.status(500).json({ error: globalError.message });
   }
 }

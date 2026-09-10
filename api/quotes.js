@@ -1,100 +1,109 @@
 export default async function handler(req, res) {
-  // Sæt CORS headers så browseren aldrig afvises
+  // CORS og cache headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 's-maxage=20, stale-while-revalidate=40');
+  res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
 
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Kun GET tilladt' });
   }
 
   const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
+  // De 3 danske aktier hentes via Yahoo Finance i DKK
   const DANISH_TICKERS = {
     VWS: 'VWS.CO',
     GN: 'GN.CO',
     DNORD: 'DNORD.CO'
   };
 
+  // De 9 amerikanske aktier hentes via Finnhub i USD
   const US_TICKERS = ['AMD', 'MSTR', 'GEV', 'TSLA', 'VST', 'SMCI', 'MU', 'FCX', 'VRT'];
+
   const results = {};
 
   try {
-    // 1. USD/DKK kurs med 2,5 sek timeout
+    // TRIN 1: Hent officiel USD/DKK valutakurs fra Yahoo
     let usdDkkRate = 6.85;
     try {
       const fxResp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/USDDKK=X?interval=1d&range=1d', {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(2500)
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+        signal: AbortSignal.timeout(3000)
       });
       if (fxResp.ok) {
-        const fxData = await fxResp.json();
-        const rate = fxData?.chart?.result?.[0]?.meta?.regularMarketPrice;
-        if (rate) usdDkkRate = rate;
+        const fxJson = await fxResp.json();
+        const liveFx = fxJson?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if (liveFx && liveFx > 5 && liveFx < 10) {
+          usdDkkRate = liveFx;
+        }
       }
-    } catch (_) {
-      // Falder tilbage til 6.85 hvis timeout eller fejl opstår
+    } catch (e) {
+      console.warn('Brugte standard USD/DKK kurs (6.85)');
     }
 
-    // 2. Yahoo Finance (Danske aktier) med 3 sek timeout
-    const danishTasks = Object.entries(DANISH_TICKERS).map(async ([symbol, yahooSymbol]) => {
+    // TRIN 2: Hent danske aktier parallelt fra Yahoo
+    const danishTasks = Object.entries(DANISH_TICKERS).map(async ([ticker, yahooSymbol]) => {
       try {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1m&range=1d`;
         const resp = await fetch(url, {
-          headers: { 'User-Agent': 'Mozilla/5.0' },
-          signal: AbortSignal.timeout(3000)
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+          signal: AbortSignal.timeout(3500)
         });
         if (resp.ok) {
-          const data = await resp.json();
-          const meta = data?.chart?.result?.[0]?.meta;
+          const d = await resp.json();
+          const meta = d?.chart?.result?.[0]?.meta;
           if (meta && meta.regularMarketPrice) {
             const current = meta.regularMarketPrice;
             const prev = meta.chartPreviousClose || meta.previousClose || current;
-            results[symbol] = {
+            const chgPct = prev ? ((current - prev) / prev) * 100 : 0;
+
+            results[ticker] = {
               price: parseFloat(current.toFixed(2)),
-              changePercent: prev ? parseFloat((((current - prev) / prev) * 100).toFixed(2)) : 0,
-              source: 'Yahoo Finance (Server)'
+              priceUSD: null,
+              changePercent: parseFloat(chgPct.toFixed(2)),
+              currency: 'DKK',
+              source: 'Yahoo Finance (CPH)'
             };
           }
         }
       } catch (err) {
-        results[symbol] = { error: err.message };
+        results[ticker] = { error: err.message };
       }
     });
 
-    // 3. Finnhub (US aktier) med 3 sek timeout
-    const usTasks = FINNHUB_API_KEY
-      ? US_TICKERS.map(async (symbol) => {
-          try {
-            const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`;
-            const resp = await fetch(url, { signal: AbortSignal.timeout(3000) });
-            if (resp.ok) {
-              const data = await resp.json();
-              if (data && data.c) {
-                const priceInDkk = data.c * usdDkkRate;
-                results[symbol] = {
-                  price: parseFloat(priceInDkk.toFixed(2)),
-                  priceUSD: data.c,
-                  changePercent: data.dp !== null ? parseFloat(data.dp.toFixed(2)) : 0,
-                  source: 'Finnhub (Server)'
-                };
-              }
-            }
-          } catch (err) {
-            results[symbol] = { error: err.message };
+    // TRIN 3: Hent amerikanske aktier parallelt fra Finnhub
+    const usTasks = US_TICKERS.map(async (ticker) => {
+      if (!FINNHUB_API_KEY) {
+        results[ticker] = { error: 'FINNHUB_API_KEY mangler i Vercel' };
+        return;
+      }
+      try {
+        const url = `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_API_KEY}`;
+        const resp = await fetch(url, { signal: AbortSignal.timeout(3500) });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && typeof data.c === 'number' && data.c > 0) {
+            const priceInDkk = data.c * usdDkkRate;
+            results[ticker] = {
+              price: parseFloat(priceInDkk.toFixed(2)),
+              priceUSD: parseFloat(data.c.toFixed(2)),
+              changePercent: data.dp !== null && data.dp !== undefined ? parseFloat(data.dp.toFixed(2)) : 0,
+              currency: 'USD',
+              source: 'Finnhub (US)'
+            };
           }
-        })
-      : US_TICKERS.map(s => {
-          results[s] = { error: 'FINNHUB_API_KEY mangler' };
-        });
+        }
+      } catch (err) {
+        results[ticker] = { error: err.message };
+      }
+    });
 
-    // Afvent alle kald parallelt (maks 3 sekunder samlet)
-    await Promise.all([...danishTasks, ...usTasks]);
+    // Vent på at samtlige 12 kurser er færdige
+    await Promise.allSettled([...danishTasks, ...usTasks]);
 
-    // Send altid svar tilbage inden for få sekunder
     return res.status(200).json({
       timestamp: new Date().toISOString(),
-      usdDkkRate,
+      usdDkkRate: parseFloat(usdDkkRate.toFixed(4)),
       data: results
     });
 

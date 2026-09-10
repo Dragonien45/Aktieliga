@@ -100,7 +100,7 @@
             </span>
             <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700">
               <span class="w-2 h-2 rounded-full bg-frost-500 animate-pulse"></span>
-              Kurser opdateres hvert minut
+              Live kurser via Vercel Backend
             </span>
           </div>
           <h1 class="text-base sm:text-lg font-black tracking-tight text-black">
@@ -128,10 +128,10 @@
 
         <!-- Live Børs-API status indicator with manual refresh -->
         <div class="flex items-center gap-1.5">
-          <button type="button" onclick="openEditModal('api')" id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition shadow-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="api-status-dot"></span>
+          <button type="button" onclick="openEditModal('api')" id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-slate-400" id="api-status-dot"></span>
             <span id="api-status-text">Børs-API: Venter</span>
-            <span class="text-[10px] text-emerald-700 font-semibold" id="api-status-time">--:--:--</span>
+            <span class="text-[10px] text-slate-500 font-semibold" id="api-status-time">--:--:--</span>
           </button>
           
           <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
@@ -237,6 +237,7 @@
 
     </div>
 
+    <!-- Duel Gauge -->
     <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
       <div class="flex items-center gap-3 w-full sm:w-auto">
         <span class="font-bold text-black flex items-center gap-1.5">
@@ -245,7 +246,6 @@
         <span id="lead-status-text" class="font-black text-frost-600">Beregner...</span>
       </div>
       
-      <!-- Interactive Duel Gauge -->
       <div class="w-full sm:w-80 h-3.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
         <div id="lead-bar-user" class="h-full bg-frost-500 transition-all duration-500" style="width: 50%"></div>
         <div id="lead-bar-dad" class="h-full bg-polar-500 transition-all duration-500" style="width: 50%"></div>
@@ -256,9 +256,8 @@
       </div>
     </div>
 
+    <!-- Chart Block -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-      
-      <!-- Chart Controls Header -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2">
           <div class="p-2 rounded-xl bg-frost-50 text-frost-600 border border-frost-200">
@@ -274,7 +273,6 @@
           </div>
         </div>
 
-        <!-- Filter Buttons + Stock Selector -->
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <!-- View Toggle -->
           <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-mono font-bold">
@@ -291,15 +289,15 @@
 
           <!-- Interval Selector -->
           <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-mono font-bold">
-            <button type="button" onclick="setChartInterval('1m')" id="btn-interval-1m" class="px-2.5 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold" title="1 minut pr. punkt">1m</button>
-            <button type="button" onclick="setChartInterval('15m')" id="btn-interval-15m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="15 minutter pr. punkt">15m</button>
-            <button type="button" onclick="setChartInterval('30m')" id="btn-interval-30m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="30 minutter pr. punkt">30m</button>
-            <button type="button" onclick="setChartInterval('1h')" id="btn-interval-1h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="1 time pr. punkt">1t</button>
-            <button type="button" onclick="setChartInterval('12h')" id="btn-interval-12h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="12 timer pr. punkt">12t</button>
-            <button type="button" onclick="setChartInterval('1d')" id="btn-interval-1d" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black" title="1 dag pr. punkt">1d</button>
+            <button type="button" onclick="setChartInterval('1m')" id="btn-interval-1m" class="px-2.5 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold">1m</button>
+            <button type="button" onclick="setChartInterval('15m')" id="btn-interval-15m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black">15m</button>
+            <button type="button" onclick="setChartInterval('30m')" id="btn-interval-30m" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black">30m</button>
+            <button type="button" onclick="setChartInterval('1h')" id="btn-interval-1h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black">1t</button>
+            <button type="button" onclick="setChartInterval('12h')" id="btn-interval-12h" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black">12t</button>
+            <button type="button" onclick="setChartInterval('1d')" id="btn-interval-1d" class="px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black">1d</button>
           </div>
 
-          <!-- Individual Stock Dropdown -->
+          <!-- Stock Selector -->
           <div class="relative">
             <select id="asset-select" onchange="setChartAsset(this.value)" class="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-300 text-black font-mono text-xs font-bold py-1.5 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-frost-500 cursor-pointer shadow-xs">
               <option value="TOTAL">📊 Samlet Portefølje (Total)</option>
@@ -313,12 +311,10 @@
         </div>
       </div>
 
-      <!-- Canvas wrapper -->
       <div class="relative w-full h-[320px] sm:h-[380px]">
         <canvas id="duel-chart"></canvas>
       </div>
 
-      <!-- Chart Legend / Footer -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono text-slate-600 border-t border-slate-100">
         <div class="flex items-center gap-4">
           <span class="flex items-center gap-1.5">
@@ -339,7 +335,7 @@
     <!-- Side-by-Side Holdings Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
-      <!-- KARL'S HOLDINGS TABLE -->
+      <!-- KARL'S HOLDINGS -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
         <div>
           <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
@@ -366,16 +362,14 @@
                   <th class="p-2.5 sm:p-3 text-center">Graf</th>
                 </tr>
               </thead>
-              <tbody id="user-holdings-tbody" class="divide-y divide-slate-100 bg-white">
-                <!-- Dynamically rendered -->
-              </tbody>
+              <tbody id="user-holdings-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
               <tfoot id="user-holdings-tfoot" class="border-t-2 border-slate-200 font-mono text-xs"></tfoot>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- KIM'S HOLDINGS TABLE -->
+      <!-- KIM'S HOLDINGS -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
         <div>
           <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
@@ -402,9 +396,7 @@
                   <th class="p-2.5 sm:p-3 text-center">Graf</th>
                 </tr>
               </thead>
-              <tbody id="dad-holdings-tbody" class="divide-y divide-slate-100 bg-white">
-                <!-- Dynamically rendered -->
-              </tbody>
+              <tbody id="dad-holdings-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
               <tfoot id="dad-holdings-tfoot" class="border-t-2 border-slate-200 font-mono text-xs"></tfoot>
             </table>
           </div>
@@ -415,10 +407,10 @@
 
   </main>
 
+  <!-- MODAL FOR DATA OG STATUS -->
   <div id="edit-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
       
-      <!-- Modal Header -->
       <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div>
           <h3 class="text-base font-black text-black flex items-center gap-2">
@@ -426,7 +418,7 @@
             Portefølje- og Datacenter
           </h3>
           <p class="text-xs text-slate-500 font-mono">
-            Hurtig import, live børs-API inspektør og indstillinger
+            Hurtig import, live børskurs-inspektør og indstillinger
           </p>
         </div>
         <button type="button" onclick="closeEditModal()" class="p-2 rounded-xl text-slate-400 hover:text-black hover:bg-slate-200 transition">
@@ -434,27 +426,60 @@
         </button>
       </div>
 
-      <!-- Modal Tabs -->
       <div class="flex items-center gap-2 px-5 pt-3 border-b border-slate-200 overflow-x-auto bg-white">
-        <button type="button" id="tab-btn-import" onclick="switchModalTab('import')" class="px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap">
-          ⚡ Hurtig Import (Tekst)
-        </button>
-        <button type="button" id="tab-btn-api" onclick="switchModalTab('api')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap flex items-center gap-1.5">
+        <button type="button" id="tab-btn-api" onclick="switchModalTab('api')" class="px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap flex items-center gap-1.5">
           📡 Børs-API Status
+        </button>
+        <button type="button" id="tab-btn-import" onclick="switchModalTab('import')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap">
+          ⚡ Hurtig Import (Tekst)
         </button>
         <button type="button" id="tab-btn-settings" onclick="switchModalTab('settings')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap">
           ⚙️ Navne & Kontanter
         </button>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
       <div class="p-5 overflow-y-auto space-y-4 text-xs font-mono custom-scrollbar">
 
-        <!-- TAB 1: IMPORT CONTENT -->
-        <div id="tab-content-import" class="space-y-4">
+        <!-- TAB 1: LIVE API STATUS -->
+        <div id="tab-content-api" class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-extrabold text-black">Aktivt Børs-Feed: Nasdaq Copenhagen + Finnhub US</span>
+              <span id="api-verified-pill" class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]">Forbinder...</span>
+            </div>
+            <p class="text-[11px]">
+              Viser realtidsdata direkte fra Vercel serverless ruten. Danske aktier afregnes i DKK, og US-aktier omregnes via markedskurs for USD/DKK.
+            </p>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 border-b border-slate-200 text-black font-extrabold text-[11px]">
+                <tr>
+                  <th class="p-2.5">Papir</th>
+                  <th class="p-2.5">Børs & Symbol</th>
+                  <th class="p-2.5 text-right">Rå Børskurs</th>
+                  <th class="p-2.5 text-right">Kurs i DKK</th>
+                  <th class="p-2.5 text-right">Kilde & Status</th>
+                </tr>
+              </thead>
+              <tbody id="api-inspector-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <span class="text-[11px] text-slate-600 font-semibold" id="api-last-sync-label">Sidst synkroniseret: Venter...</span>
+            <button type="button" onclick="fetchLiveStockPrices(true)" class="px-3.5 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Opdatér Alle Kurser Nu
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: IMPORT -->
+        <div id="tab-content-import" class="space-y-4 hidden">
           <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
             <span class="font-bold text-black block mb-1">📋 Kopiér direkte fra Aktieligaen (Euroinvestor)</span>
-            Marker blot tabellen med dine aktier inde på Euroinvestor og tryk Ctrl+C. Vores parser aflæser automatisk antal, navn og jeres <strong>købskurs i parentes (GAV)</strong>.
+            Marker tabellen med dine aktier på Euroinvestor og tryk Ctrl+C. Aflæser automatisk antal, navn og jeres <strong>købskurs i parentes (GAV)</strong>.
           </div>
 
           <div>
@@ -472,56 +497,18 @@
           </div>
 
           <div>
-            <label class="block font-bold text-black mb-1.5">Indsæt tabeltekst eller delingsdata:</label>
-            <textarea id="import-text-input" rows="6" placeholder="228  Vestas Wind Systems A/S  49.134,00 kr.  215,50 kr. (218,40 kr.)  -661,20 kr.
-1.030  GN Store Nord AS  99.086,00 kr.  96,20 kr. (96,92 kr.)  -741,60 kr.
-Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-black font-mono text-xs focus:ring-2 focus:ring-frost-500 focus:outline-none"></textarea>
+            <label class="block font-bold text-black mb-1.5">Indsæt tabeltekst:</label>
+            <textarea id="import-text-input" rows="6" class="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-black font-mono text-xs focus:ring-2 focus:ring-frost-500 focus:outline-none"></textarea>
           </div>
 
           <div class="flex justify-end">
             <button type="button" onclick="importPortfolioText()" class="px-4 py-2 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs flex items-center gap-2">
-              <i data-lucide="check" class="w-4 h-4"></i> Importer og Opdater Portefølje
+              <i data-lucide="check" class="w-4 h-4"></i> Importer og Opdater
             </button>
           </div>
         </div>
 
-        <!-- TAB 2: LIVE API STATUS -->
-        <div id="tab-content-api" class="space-y-4 hidden">
-          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-extrabold text-black">Aktivt Børs-Feed: Nasdaq Copenhagen + US Exchanges</span>
-              <span id="api-verified-pill" class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]">Verificerer...</span>
-            </div>
-            <p class="text-[11px]">
-              Her kan du se den rå API-status for hver aktie. Grøn betyder, at et reelt datakald til Yahoo Finance/Nasdaq lykkedes inden for de seneste minutter. Hvis børsen er lukket eller en proxy rate-limiter, markeres aktien tydeligt.
-            </p>
-          </div>
-
-          <div class="border border-slate-200 rounded-xl overflow-hidden">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 border-b border-slate-200 text-black font-extrabold text-[11px]">
-                <tr>
-                  <th class="p-2.5">Papir</th>
-                  <th class="p-2.5">Børs & Symbol</th>
-                  <th class="p-2.5 text-right">Rå Børskurs</th>
-                  <th class="p-2.5 text-right">Kilde & Status</th>
-                </tr>
-              </thead>
-              <tbody id="api-inspector-tbody" class="divide-y divide-slate-100 bg-white">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <span class="text-[11px] text-slate-600 font-semibold" id="api-last-sync-label">Sidst synkroniseret: Venter...</span>
-            <button type="button" onclick="fetchLiveStockPrices(true)" class="px-3.5 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Test & Opdatér Alle Kurser Nu
-            </button>
-          </div>
-        </div>
-
-        <!-- TAB 3: SETTINGS CONTENT -->
+        <!-- TAB 3: SETTINGS -->
         <div id="tab-content-settings" class="space-y-4 hidden">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
@@ -573,7 +560,6 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
   <script>
     const START_CAPITAL = 1000000;
 
-    // Official ticker mappings for real market data
     const TICKER_MAP = {
       'VWS': { symbol: 'VWS.CO', name: 'Vestas Wind Systems', exchange: 'CPH (DKK)', isDK: true },
       'GN': { symbol: 'GN.CO', name: 'GN Store Nord', exchange: 'CPH (DKK)', isDK: true },
@@ -589,10 +575,8 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
       'VRT': { symbol: 'VRT', name: 'Vertiv Holdings', exchange: 'NYSE (USD)', isDK: false }
     };
 
-    // Tracking real API response metadata per ticker
     const apiMetadata = {};
 
-    // State definition with Karl's and Kim's exact holdings
     const state = {
       user: {
         name: 'Karl (Teampogi2300)',
@@ -629,72 +613,12 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
     };
 
     const INTERVAL_CONFIGS = {
-      '1m': {
-        name: '1 minut',
-        description: 'Skala: 1 minut pr. datapunkt (seneste 25 minutter)',
-        stepMinutes: 1,
-        points: 25,
-        curveMultiplier: 0.15,
-        seedU: 0.65,
-        seedD: 0.58,
-        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }),
-        timeFormat: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
-      },
-      '15m': {
-        name: '15 minutter',
-        description: 'Skala: 15 minutter pr. datapunkt (seneste 6 timer)',
-        stepMinutes: 15,
-        points: 24,
-        curveMultiplier: 0.5,
-        seedU: 0.48,
-        seedD: 0.42,
-        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }),
-        timeFormat: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
-      },
-      '30m': {
-        name: '30 minutter',
-        description: 'Skala: 30 minutter pr. datapunkt (seneste 12 timer)',
-        stepMinutes: 30,
-        points: 24,
-        curveMultiplier: 0.8,
-        seedU: 0.45,
-        seedD: 0.40,
-        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`,
-        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
-      },
-      '1h': {
-        name: '1 time',
-        description: 'Skala: 1 time pr. datapunkt (seneste 24 timer)',
-        stepMinutes: 60,
-        points: 24,
-        curveMultiplier: 1.2,
-        seedU: 0.35,
-        seedD: 0.32,
-        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00`,
-        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00`
-      },
-      '12h': {
-        name: '12 timer',
-        description: 'Skala: 12 timer pr. datapunkt (seneste 10 dage)',
-        stepMinutes: 720,
-        points: 20,
-        curveMultiplier: 1.8,
-        seedU: 0.25,
-        seedD: 0.22,
-        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`,
-        timeFormat: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`
-      },
-      '1d': {
-        name: '1 dag',
-        description: 'Skala: 1 dag pr. datapunkt (seneste 20 handelsdage)',
-        stepMinutes: 1440,
-        points: 20,
-        curveMultiplier: 2.5,
-        seedU: 0.18,
-        seedD: 0.15,
-        format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`,
-        timeFormat: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`
-      }
+      '1m': { stepMinutes: 1, points: 25, curveMultiplier: 0.15, format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) },
+      '15m': { stepMinutes: 15, points: 24, curveMultiplier: 0.5, format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) },
+      '30m': { stepMinutes: 30, points: 24, curveMultiplier: 0.8, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}` },
+      '1h': { stepMinutes: 60, points: 24, curveMultiplier: 1.2, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00` },
+      '12h': { stepMinutes: 720, points: 20, curveMultiplier: 1.8, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}` },
+      '1d': { stepMinutes: 1440, points: 20, curveMultiplier: 2.5, format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}` }
     };
 
     let selectedInterval = '1m';
@@ -704,10 +628,7 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
 
     function formatNumber(num, decimals = 2) {
       if (typeof num !== 'number' || isNaN(num)) return '0,00';
-      return num.toLocaleString('da-DK', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-      });
+      return num.toLocaleString('da-DK', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
 
     function getPortfolioEquity(person) {
@@ -724,9 +645,7 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
       if (!toast || !text) return;
       text.textContent = msg;
       toast.classList.remove('translate-y-20', 'opacity-0');
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 3200);
+      setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3200);
     }
 
     async function fetchLiveStockPrices(isManual = false) {
@@ -741,58 +660,70 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
       if (statusText) statusText.textContent = 'Henter fra server-API...';
       if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
 
+      // Saml alle unikke tickers
       const combined = [...state.user.holdings, ...state.dad.holdings];
-      const allUnique = Array.from(new Map(combined.map(item => [item.ticker, item])).values());
+      const allUniqueTickers = [...new Set(combined.map(item => item.ticker))];
 
       let successCount = 0;
 
-      try {// Kald til vores egen sikre Vercel Serverless API-route
-            const response = await fetch('/api/quotes');
-            if (!response.ok) {
-                throw new Error(`Serveren svarede med status ${response.status}`);
-            }
+      try {
+        const response = await fetch('/api/quotes');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-            const jsonResponse = await response.json();
-            const quotes = jsonResponse.data || jsonResponse;
+        const jsonResponse = await response.json();
+        const quotes = jsonResponse.data || jsonResponse;
 
-           allUniqueTickers.forEach(ticker => {
-                const q = quotes[ticker];
-                const mapping = typeof TICKER_MAP !== 'undefined' ? TICKER_MAP[ticker] : null;
+        allUniqueTickers.forEach(ticker => {
+          const q = quotes[ticker];
+          const mapping = TICKER_MAP[ticker];
 
-                if (q && (q.price !== undefined || q.priceUSD !== undefined)) {
-                    const priceValue = q.price !== undefined ? q.price : (q.priceUSD * (jsonResponse.usdDkkRate || 6.85));
-                    
-                    // Opdater kurser i state for begge brugere
-                    [state.user.holdings, state.dad.holdings].forEach(holdings => {
-                        const h = holdings.find(item => item.ticker === ticker);
-                        if (h) {
-                            h.currentPrice = priceValue;
-                        }
-                    });
+          if (q && typeof q.price === 'number' && q.price > 0) {
+            const finalDkkPrice = q.price;
 
-                    apiMetadata[ticker] = {
-                        status: 'LIVE',
-                        rawPrice: q.priceUSD !== undefined ? q.priceUSD : q.price,
-                        currency: q.priceUSD !== undefined ? 'USD' : (mapping?.isDK ? 'DKK' : 'USD'),
-                        changePct: q.changePercent !== undefined ? q.changePercent : 0,
-                        source: q.source || 'Server-API',
-                        lastFetched: new Date()
-                    };
-                    successCount++;
-                } else {
-                    fallbackMicroTick(ticker);
-                    apiMetadata[ticker] = {
-                        status: 'FALLBACK',
-                        rawPrice: null,
-                        currency: mapping?.isDK ? 'DKK' : 'USD',
-                        changePct: null,
-                        source: 'Venter på server',
-                        lastFetched: new Date()
-                    };
+            // Opdater aktien hos begge brugere
+            [state.user.holdings, state.dad.holdings].forEach(holdings => {
+              const h = holdings.find(item => item.ticker === ticker);
+              if (h) {
+                const old = h.currentPrice;
+                h.currentPrice = finalDkkPrice;
+                h.history.push(finalDkkPrice);
+                if (h.history.length > 30) h.history.shift();
+
+                const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
+                if (cell) {
+                  cell.classList.remove('flash-up', 'flash-down');
+                  void cell.offsetWidth;
+                  cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
                 }
+              }
             });
+
+            apiMetadata[ticker] = {
+              status: 'LIVE',
+              rawPrice: q.priceUSD !== null && q.priceUSD !== undefined ? q.priceUSD : q.price,
+              currency: q.priceUSD !== null && q.priceUSD !== undefined ? 'USD' : 'DKK',
+              changePct: typeof q.changePercent === 'number' ? q.changePercent : 0,
+              source: q.source || 'Server-API',
+              lastFetched: new Date()
+            };
+            successCount++;
+          } else {
+            fallbackMicroTick(ticker);
+            apiMetadata[ticker] = {
+              status: 'FALLBACK',
+              rawPrice: null,
+              currency: mapping?.isDK ? 'DKK' : 'USD',
+              changePct: 0,
+              source: 'Venter på børs',
+              lastFetched: new Date()
+            };
+          }
+        });
+
       } catch (err) {
-        // Hvis siden åbnes i en ren lokal preview uden server kørende, håndteres det uden nedbrud
+        console.warn('API kald mislykkedes, bruger sikker simulering:', err);
         allUniqueTickers.forEach(ticker => {
           fallbackMicroTick(ticker);
           const mapping = TICKER_MAP[ticker];
@@ -801,8 +732,8 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
               status: 'FALLBACK',
               rawPrice: null,
               currency: mapping?.isDK ? 'DKK' : 'USD',
-              changePct: null,
-              source: 'Lokal visning (Deploy til Vercel for live data)',
+              changePct: 0,
+              source: 'Lokal tilstand',
               lastFetched: new Date()
             };
           } else {
@@ -811,7 +742,7 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
         });
       }
 
-      // Re-aggregate history
+      // Opdater historik
       const userTotal = getPortfolioTotal(state.user);
       state.user.history.push(userTotal);
       if (state.user.history.length > 30) state.user.history.shift();
@@ -823,7 +754,7 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
       lastApiSync = new Date();
       const timeStr = lastApiSync.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      // Update honest status badge based on real API returns
+      // Opdater status badge
       const totalCount = allUniqueTickers.length;
       const verifiedPill = document.getElementById('api-verified-pill');
       
@@ -842,11 +773,11 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
           verifiedPill.textContent = `${successCount} af ${totalCount} live via server`;
         }
       } else {
-        if (statusText) statusText.textContent = 'Børs-API: Venter på server';
+        if (statusText) statusText.textContent = 'Børs-API: Venter';
         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-slate-400';
         if (verifiedPill) {
           verifiedPill.className = 'px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]';
-          verifiedPill.textContent = 'Deploy til Vercel for at aktivere server-API';
+          verifiedPill.textContent = 'Forbindelse afventer';
         }
       }
 
@@ -855,59 +786,27 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
 
       const lastSyncLabel = document.getElementById('api-last-sync-label');
       if (lastSyncLabel) {
-        lastSyncLabel.textContent = `Sidst synkroniseret: ${timeStr} (${successCount} af ${totalCount} aktier hentet via Vercel server)`;
+        lastSyncLabel.textContent = `Sidst synkroniseret: ${timeStr} (${successCount} af ${totalCount} aktier hentet)`;
       }
 
+      // GENTENGNING AF HELE BRUGERFLADEN
       updateMetricsUI();
-refreshChartData();
-renderApiInspectorTable();
-if (typeof renderHoldingsTables === 'function') renderHoldingsTables();
-if (typeof renderTables === 'function') renderTables();
-if (typeof renderDashboard === 'function') renderDashboard();
+      refreshChartData();
+      renderApiInspectorTable();
 
       if (refreshIcon) refreshIcon.classList.remove('animate-spin');
       isFetchingApi = false;
 
       if (isManual) {
-        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser hentet sikkert fra server!` : 'Serveren er ikke forbundet endnu.');
+        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser synkroniseret!` : 'Forbindelse afventes.');
       }
-    }
-
-    function applyLivePriceToPortfolios(ticker, rawLivePrice, changePct, isDK) {
-      [state.user, state.dad].forEach(person => {
-        person.holdings.forEach(stock => {
-          if (stock.ticker === ticker) {
-            const oldPrice = stock.currentPrice;
-            let updatedPrice;
-
-            if (isDK) {
-              updatedPrice = parseFloat(rawLivePrice.toFixed(2));
-            } else {
-              updatedPrice = parseFloat((stock.avgBuy * (1 + changePct)).toFixed(2));
-            }
-
-            stock.currentPrice = updatedPrice;
-            stock.history.push(updatedPrice);
-            if (stock.history.length > 30) stock.history.shift();
-
-            // Flash cell animation
-            const cellId = `price-${stock.ticker}-${person === state.user ? 'user' : 'dad'}`;
-            const cell = document.getElementById(cellId);
-            if (cell) {
-              cell.classList.remove('flash-up', 'flash-down');
-              void cell.offsetWidth;
-              cell.classList.add(updatedPrice >= oldPrice ? 'flash-up' : 'flash-down');
-            }
-          }
-        });
-      });
     }
 
     function fallbackMicroTick(ticker) {
       [state.user, state.dad].forEach(person => {
         person.holdings.forEach(stock => {
           if (stock.ticker === ticker) {
-            const jitter = (Math.random() - 0.495) * 0.0025;
+            const jitter = (Math.random() - 0.495) * 0.001;
             const updated = parseFloat((stock.currentPrice * (1 + jitter)).toFixed(2));
             stock.currentPrice = updated;
             stock.history.push(updated);
@@ -927,7 +826,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
       const userPnlPct = ((userTotal - START_CAPITAL) / START_CAPITAL) * 100;
       const dadPnlPct = ((dadTotal - START_CAPITAL) / START_CAPITAL) * 100;
 
-      // Cards
+      // Opdater Duel-kort
       const userTotalEl = document.getElementById('user-total-val');
       if (userTotalEl) userTotalEl.textContent = `${formatNumber(userTotal, 2)} DKK`;
 
@@ -966,7 +865,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
         dadPnlBadge.className = `px-2 py-0.5 rounded-md text-xs font-mono font-bold ${isPos ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`;
       }
 
-      // Battle Gauge
+      // Føring
       const diff = userTotal - dadTotal;
       const leadText = document.getElementById('lead-status-text');
       const barUser = document.getElementById('lead-bar-user');
@@ -1010,7 +909,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
 
       person.holdings.forEach(stock => {
         const totalCost = stock.qty * stock.avgBuy;
-        const totalVal = stock.qty * stock.currentPrice; // Live kurs * Antal aktier
+        const totalVal = stock.qty * stock.currentPrice;
         const pnlKr = totalVal - totalCost;
         const pnlPct = totalCost > 0 ? (pnlKr / totalCost) * 100 : 0;
         const isPos = pnlKr >= 0;
@@ -1044,7 +943,6 @@ if (typeof renderDashboard === 'function') renderDashboard();
         tbody.appendChild(tr);
       });
 
-      // Render summary footer showing: Equity + Cash = Total Portfolio
       if (tfoot) {
         const totalPnlKr = totalEquitySum - totalCostSum;
         const totalPnlPct = totalCostSum > 0 ? (totalPnlKr / totalCostSum) * 100 : 0;
@@ -1082,6 +980,52 @@ if (typeof renderDashboard === 'function') renderDashboard();
       }
 
       lucide.createIcons();
+    }
+
+    function renderApiInspectorTable() {
+      const tbody = document.getElementById('api-inspector-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const combined = [...state.user.holdings, ...state.dad.holdings];
+      const allUnique = Array.from(new Map(combined.map(item => [item.ticker, item])).values());
+
+      allUnique.forEach(item => {
+        const mapping = TICKER_MAP[item.ticker] || { symbol: item.ticker, exchange: 'Global / US', isDK: false };
+        const meta = apiMetadata[item.ticker];
+        const isLive = meta && meta.status === 'LIVE';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 text-xs font-mono';
+        tr.innerHTML = `
+          <td class="p-2.5 font-black text-black">
+            ${item.ticker}
+            <span class="text-slate-500 font-normal text-[11px] block">${item.name}</span>
+          </td>
+          <td class="p-2.5 text-black font-semibold">
+            ${mapping.symbol}
+            <span class="text-slate-400 text-[10px] block">${mapping.exchange}</span>
+          </td>
+          <td class="p-2.5 text-right text-slate-700 font-bold">
+            ${isLive && meta.rawPrice ? `${formatNumber(meta.rawPrice, 2)} ${meta.currency}` : '--'}
+          </td>
+          <td class="p-2.5 text-right font-black ${isLive ? 'text-emerald-700' : 'text-slate-700'}">
+            ${formatNumber(item.currentPrice, 2)} DKK
+            ${isLive && typeof meta.changePct === 'number' ? `<span class="block text-[10px] ${meta.changePct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${meta.changePct >= 0 ? '+' : ''}${formatNumber(meta.changePct, 2)}%</span>` : ''}
+          </td>
+          <td class="p-2.5 text-right">
+            ${isLive 
+              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${meta.source || 'Server Live'}
+                 </span>`
+              : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                   <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> ${meta?.source || 'Afventer'}
+                 </span>`
+            }
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     function initHistoricalData() {
@@ -1135,10 +1079,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -1183,45 +1124,31 @@ if (typeof renderDashboard === 'function') renderDashboard();
 
       const currentU = getPortfolioTotal(state.user);
       const currentD = getPortfolioTotal(state.dad);
-      const formatFn = conf.timeFormat || conf.format || (d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }));
+      const formatFn = conf.format || (d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }));
       const curveMultiplier = conf.curveMultiplier || 1;
-      const seedU = conf.seedU || 0.48;
-      const seedD = conf.seedD || 0.42;
 
-      // Beregn præcise tidsstempler for hvert trin bagud fra nu
       for (let i = conf.points - 1; i >= 0; i--) {
         const pointDate = new Date(now.getTime() - (i * conf.stepMinutes * 60 * 1000));
         labels.push(formatFn(pointDate));
 
         if (i === 0) {
-          // Det allernyeste punkt er altid 100% lig med den aktuelle live værdi
           userSeries.push(currentU);
           dadSeries.push(currentD);
         } else {
-          // Tidsbaseret kurvedynamik tilpasset den valgte tidshorisont
           const progress = i / conf.points;
           let historicalU, historicalD;
 
           if (selectedInterval === '1d') {
-            // 1d viser rejsen fra ligastart (1.000.000 kr) op til nu
             const baseU = START_CAPITAL + ((currentU - START_CAPITAL) * (1 - progress));
             const baseD = START_CAPITAL + ((currentD - START_CAPITAL) * (1 - progress));
-            const waveU = Math.sin(i * seedU) * 4500 * (1 - progress * 0.4);
-            const waveD = Math.cos(i * seedD) * 3800 * (1 - progress * 0.4);
-            historicalU = baseU + waveU;
-            historicalD = baseD + waveD;
+            historicalU = baseU + (Math.sin(i * 0.5) * 4500);
+            historicalD = baseD + (Math.cos(i * 0.4) * 3800);
           } else if (selectedInterval === '1m') {
-            // 1m viser de seneste 25 minutters mikrobevægelser (±500-1.200 kr)
-            const microU = Math.sin(i * 0.7) * 650 + Math.cos(i * 1.3) * 400;
-            const microD = Math.cos(i * 0.6) * 580 + Math.sin(i * 1.1) * 350;
-            historicalU = currentU - microU;
-            historicalD = currentD - microD;
+            historicalU = currentU - (Math.sin(i * 0.7) * 450);
+            historicalD = currentD - (Math.cos(i * 0.6) * 380);
           } else {
-            // Intradag/fler-dagsintervaller (15m, 30m, 1t, 12t)
-            const swingU = Math.sin(i * seedU) * (2500 * curveMultiplier) + (Math.cos(i * 0.8) * 1200);
-            const swingD = Math.cos(i * seedD) * (2200 * curveMultiplier) + (Math.sin(i * 0.75) * 1100);
-            historicalU = currentU - swingU;
-            historicalD = currentD - swingD;
+            historicalU = currentU - (Math.sin(i * 0.5) * (2000 * curveMultiplier));
+            historicalD = currentD - (Math.cos(i * 0.4) * (1800 * curveMultiplier));
           }
 
           userSeries.push(parseFloat(historicalU.toFixed(2)));
@@ -1275,7 +1202,6 @@ if (typeof renderDashboard === 'function') renderDashboard();
           }];
         }
       } else {
-        // Enkeltaktie visning
         const uStock = state.user.holdings.find(h => h.ticker === state.selectedAsset);
         const dStock = state.dad.holdings.find(h => h.ticker === state.selectedAsset);
         const datasets = [];
@@ -1286,7 +1212,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
             if (i === 0) {
               arr.push(stock.currentPrice);
             } else {
-              const variance = (stock.currentPrice * 0.008 * curveMultiplier) * Math.sin(i * 0.6);
+              const variance = (stock.currentPrice * 0.005 * curveMultiplier) * Math.sin(i * 0.6);
               const drift = (stock.currentPrice - stock.avgBuy) * (1 - (i / conf.points));
               arr.push(parseFloat((stock.avgBuy + drift + variance).toFixed(2)));
             }
@@ -1326,21 +1252,13 @@ if (typeof renderDashboard === 'function') renderDashboard();
       if (!INTERVAL_CONFIGS[interval]) return;
       selectedInterval = interval;
 
-      const conf = INTERVAL_CONFIGS[interval];
-      const subTitleEl = document.getElementById('chart-sub-title');
-      if (subTitleEl) {
-        subTitleEl.textContent = conf.description;
-      }
-
       const intervals = ['1m', '15m', '30m', '1h', '12h', '1d'];
       intervals.forEach(inv => {
         const btn = document.getElementById(`btn-interval-${inv}`);
         if (btn) {
-          if (inv === interval) {
-            btn.className = 'px-2.5 py-1 rounded-lg transition bg-frost-600 text-white shadow-xs font-bold';
-          } else {
-            btn.className = 'px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black';
-          }
+          btn.className = inv === interval
+            ? 'px-2.5 py-1 rounded-lg transition bg-frost-600 text-white shadow-xs font-bold'
+            : 'px-2.5 py-1 rounded-lg transition text-slate-600 hover:text-black';
         }
       });
 
@@ -1352,11 +1270,9 @@ if (typeof renderDashboard === 'function') renderDashboard();
       ['duel', 'user', 'dad'].forEach(v => {
         const btn = document.getElementById(`btn-view-${v}`);
         if (btn) {
-          if (v === view) {
-            btn.className = 'px-3 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold';
-          } else {
-            btn.className = 'px-3 py-1 rounded-lg transition text-slate-600 hover:text-black';
-          }
+          btn.className = v === view
+            ? 'px-3 py-1 rounded-lg transition bg-white text-black shadow-xs font-bold'
+            : 'px-3 py-1 rounded-lg transition text-slate-600 hover:text-black';
         }
       });
       refreshChartData();
@@ -1366,11 +1282,9 @@ if (typeof renderDashboard === 'function') renderDashboard();
       state.selectedAsset = ticker;
       const titleEl = document.getElementById('chart-main-title');
       if (titleEl) {
-        if (ticker === 'TOTAL') {
-          titleEl.textContent = 'Realtids Duel: Samlet Portefølje';
-        } else {
-          titleEl.textContent = `Enkeltaktie Analyse: ${ticker}`;
-        }
+        titleEl.textContent = ticker === 'TOTAL'
+          ? 'Realtids Duel: Samlet Portefølje'
+          : `Enkeltaktie Analyse: ${ticker}`;
       }
       refreshChartData();
     }
@@ -1447,7 +1361,6 @@ if (typeof renderDashboard === 'function') renderDashboard();
       for (const line of lines) {
         if (/bankkonto/i.test(line) || /ranking/i.test(line) || /værdipapir/i.test(line)) continue;
 
-        // Try extracting: Antal, Navn, GAV inside parentheses
         const gavMatch = line.match(/\(([0-9.,]+)\s*kr\.?\)/i);
         const tokens = line.split(/\s{2,}|\t/).map(t => t.trim()).filter(Boolean);
 
@@ -1459,7 +1372,6 @@ if (typeof renderDashboard === 'function') renderDashboard();
           if (gavMatch) {
             buyPrice = parseFloat(gavMatch[1].replace(/\./g, '').replace(',', '.'));
           } else {
-            // fallback if cost is in token 3
             const fallbackPriceMatch = line.match(/([0-9.,]+)\s*kr/);
             if (fallbackPriceMatch) {
               buyPrice = parseFloat(fallbackPriceMatch[1].replace(/\./g, '').replace(',', '.'));
@@ -1509,52 +1421,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
       showToast(`Importerede data for ${person.name}!`);
     }
 
-    function renderApiInspectorTable() {
-      const tbody = document.getElementById('api-inspector-tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-
-      const allUnique = [...new Set([
-        ...state.user.holdings.map(h => ({ ticker: h.ticker, name: h.name, price: h.currentPrice })),
-        ...state.dad.holdings.map(h => ({ ticker: h.ticker, name: h.name, price: h.currentPrice }))
-      ])];
-
-      allUnique.forEach(item => {
-        const mapping = TICKER_MAP[item.ticker] || { symbol: item.ticker, exchange: 'Global / US' };
-        const meta = apiMetadata[item.ticker];
-        const isLive = meta && meta.status === 'LIVE';
-
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 text-xs font-mono';
-        tr.innerHTML = `
-          <td class="p-2.5 font-black text-black">
-            ${item.ticker}
-            <span class="text-slate-500 font-normal text-[11px] block">${item.name}</span>
-          </td>
-          <td class="p-2.5 text-black font-semibold">
-            ${mapping.symbol}
-            <span class="text-slate-400 text-[10px] block">${mapping.exchange}</span>
-          </td>
-          <td class="p-2.5 text-right font-black ${isLive ? 'text-emerald-700' : 'text-slate-700'}">
-            ${isLive && meta.rawPrice ? `${formatNumber(meta.rawPrice, 2)} ${meta.currency}` : `${formatNumber(item.price, 2)} DKK`}
-            ${isLive && meta.changePct ? `<span class="block text-[10px] ${parseFloat(meta.changePct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${parseFloat(meta.changePct) >= 0 ? '+' : ''}${meta.changePct}%</span>` : ''}
-          </td>
-          <td class="p-2.5 text-right">
-            ${isLive 
-              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${meta.source || 'Server Live'}
-                 </span>`
-              : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold border border-slate-200">
-                   <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> ${meta?.source || 'Afventer'}
-                 </span>`
-            }
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function openEditModal(tab = 'import') {
+    function openEditModal(tab = 'api') {
       const modal = document.getElementById('edit-modal');
       if (modal) modal.classList.remove('hidden');
       switchModalTab(tab);
@@ -1600,6 +1467,7 @@ if (typeof renderDashboard === 'function') renderDashboard();
       showToast('Indstillinger er gemt!');
     }
 
+    // Global eksponering
     window.fetchLiveStockPrices = fetchLiveStockPrices;
     window.openEditModal = openEditModal;
     window.closeEditModal = closeEditModal;
@@ -1621,8 +1489,10 @@ if (typeof renderDashboard === 'function') renderDashboard();
       updateClock();
       setInterval(updateClock, 1000);
 
-      // Trigger stock quote fetch on start, then cycle every 60 seconds (1 minute)
+      // Første live hentning
       fetchLiveStockPrices(false);
+
+      // Opdater automatisk hvert 60. sekund
       setInterval(() => {
         fetchLiveStockPrices(false);
       }, 60000);

@@ -89,6 +89,7 @@
 </head>
 <body class="min-h-screen grid-pattern selection:bg-frost-200 selection:text-frost-900 pb-16">
 
+  <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       
@@ -104,7 +105,7 @@
             </span>
             <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700 hidden sm:inline-flex">
               <span class="w-2 h-2 rounded-full bg-frost-500 animate-pulse"></span>
-              Live kurser via Vercel Backend
+              Live kurser via Yahoo Finance
             </span>
           </div>
           <h1 class="text-base sm:text-lg font-black tracking-tight text-black">
@@ -114,7 +115,7 @@
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-        <!-- Market Clocks (DK + US) - visible across all responsive screens -->
+        <!-- Market Clocks (DK + US) -->
         <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-black">
           <span class="flex items-center gap-1 font-bold text-[11px] sm:text-xs">
             <i data-lucide="clock" class="w-3.5 h-3.5 text-frost-600"></i>
@@ -134,11 +135,11 @@
         <div class="flex items-center gap-1.5">
           <div id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs">
             <span class="w-2 h-2 rounded-full bg-slate-400" id="api-status-dot"></span>
-            <span id="api-status-text">Børs-API: Venter</span>
+            <span id="api-status-text">Yahoo Finance: Venter</span>
             <span class="text-[10px] text-slate-500 font-semibold" id="api-status-time">--:--:--</span>
           </div>
           
-          <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
+          <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser fra Yahoo Finance nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
             <i data-lucide="refresh-cw" class="w-4 h-4" id="api-refresh-icon"></i>
           </button>
         </div>
@@ -457,7 +458,7 @@
         </button>
       </div>
 
-      <!-- Person Switcher -->
+      <!-- Person Switcher & Cash -->
       <div class="flex items-center justify-between px-5 py-2.5 bg-slate-100/70 border-b border-slate-200">
         <div class="inline-flex rounded-xl bg-white p-1 border border-slate-200 text-xs font-mono font-bold shadow-2xs">
           <button type="button" id="modal-btn-person-user" onclick="switchModalPerson('user')" class="px-3 py-1 rounded-lg transition font-bold bg-frost-600 text-white shadow-xs">
@@ -490,13 +491,18 @@
             <span class="font-bold text-black flex items-center gap-1.5 text-xs sm:text-sm">
               <i data-lucide="plus" class="w-4 h-4 text-frost-600"></i> Tilføj Ny Aktie (Yahoo Finance)
             </span>
-            <span class="text-[10px] text-slate-500">Gemmes automatisk</span>
+            <span id="ticker-lookup-status" class="text-[10px] text-slate-500 font-semibold">Gemmes automatisk</span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
             <div>
               <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Ticker / Symbol</label>
-              <input type="text" id="add-ticker-input" placeholder="fx NVDA el. NOVO-B.CO" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold uppercase focus:ring-2 focus:ring-frost-500" />
+              <div class="flex gap-1">
+                <input type="text" id="add-ticker-input" placeholder="fx NVDA el. NOVO-B.CO" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold uppercase focus:ring-2 focus:ring-frost-500" />
+                <button type="button" onclick="verifyTickerFromBackend()" title="Slå op på Yahoo Finance" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-slate-700 hover:text-frost-600 transition flex items-center justify-center shrink-0">
+                  <i data-lucide="search" class="w-3.5 h-3.5" id="search-ticker-icon"></i>
+                </button>
+              </div>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Navn (Valgfrit)</label>
@@ -510,6 +516,12 @@
               <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Købskurs (GAV kr.)</label>
               <input type="number" id="add-gav-input" min="0.01" step="0.01" placeholder="fx 890.50" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold focus:ring-2 focus:ring-frost-500 text-right" />
             </div>
+          </div>
+
+          <!-- Live lookup feedback banner -->
+          <div id="lookup-result-banner" class="hidden p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 font-bold flex items-center justify-between">
+            <span id="lookup-result-text">Aktie fundet!</span>
+            <button type="button" onclick="applyLookupPriceToGav()" class="underline text-emerald-900 hover:text-black">Brug som GAV</button>
           </div>
 
           <!-- Quick suggestion pills -->
@@ -556,9 +568,14 @@
       <!-- Modal Footer -->
       <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
         <span class="text-[11px] text-slate-500">Tip: Danske aktier bruger <code class="bg-slate-200 px-1 rounded">.CO</code> endelse</span>
-        <button type="button" onclick="closeManageHoldingsModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold transition shadow-xs">
-          Færdig & Luk
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="fetchLiveStockPrices(true)" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold transition text-xs flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Synkroniser kurser
+          </button>
+          <button type="button" onclick="closeManageHoldingsModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold transition shadow-xs">
+            Færdig & Luk
+          </button>
+        </div>
       </div>
 
     </div>
@@ -638,7 +655,7 @@
           if (parsed.dad && Array.isArray(parsed.dad.holdings)) {
             state.dad = parsed.dad;
           }
-          // Register dynamic tickers into TICKER_MAP
+          // Registrér dynamiske tickers i TICKER_MAP
           [...state.user.holdings, ...state.dad.holdings].forEach(h => {
             if (!TICKER_MAP[h.ticker]) {
               const isDK = h.ticker.toUpperCase().endsWith('.CO');
@@ -670,7 +687,6 @@
     function checkMarketStatus() {
       const now = new Date();
       
-      // Calculate based on Europe/Copenhagen time
       const cphFormatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'Europe/Copenhagen',
         hour12: false,
@@ -682,7 +698,7 @@
       const partMap = {};
       parts.forEach(p => partMap[p.type] = p.value);
 
-      const dayName = partMap.weekday; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
+      const dayName = partMap.weekday;
       const isWeekday = !['Sat', 'Sun'].includes(dayName);
       const hour = parseInt(partMap.hour, 10);
       const min = parseInt(partMap.minute, 10);
@@ -690,7 +706,7 @@
 
       // Nasdaq Copenhagen: 09:00 - 17:00 CET/CEST
       const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
-      // US Markets: 15:30 - 22:00 Danish time (09:30 - 16:00 EST/EDT)
+      // US Markets: 15:30 - 22:00 Dansk tid
       const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
 
       return { dkOpen, usOpen };
@@ -733,7 +749,6 @@
       };
 
       const history = getSnapshots();
-      // Gem snapshot hvis der er reel ændring eller der er gået mindst 60 sekunder
       const last = history[history.length - 1];
       if (!last || Math.abs(last.user - entry.user) > 0.1 || Math.abs(last.dad - entry.dad) > 0.1 || (entry.time - last.time > 60000)) {
         history.push(entry);
@@ -745,39 +760,35 @@
       return history;
     }
 
-    /* Definition af præcise tidsintervaller:
-       - stepMs: Præcis tidsafstand mellem HVER prik på grafen
-       - points: Hvor mange prikker/tidsintervaller grafen viser samlet
-    */
     const INTERVAL_CONFIGS = {
       '1m': {
         stepMs: 1 * 60 * 1000,
-        points: 30, // 30 min samlet visning, 1 minut mellem hver prik
+        points: 30,
         format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
       },
       '15m': {
         stepMs: 15 * 60 * 1000,
-        points: 32, // 8 timers samlet visning, 15 min mellem hver prik
+        points: 32,
         format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
       },
       '30m': {
         stepMs: 30 * 60 * 1000,
-        points: 36, // 18 timers samlet visning, 30 min mellem hver prik
+        points: 36,
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
       },
       '1h': {
         stepMs: 60 * 60 * 1000,
-        points: 24, // 24 timers tidslinje, PRÆCIS 1 time mellem hver prik
+        points: 24,
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours().toString().padStart(2, '0')}:00`
       },
       '12h': {
         stepMs: 12 * 60 * 60 * 1000,
-        points: 14, // 7 dages samlet visning, 12 timer mellem hver prik
+        points: 14,
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`
       },
       '1d': {
         stepMs: 24 * 60 * 60 * 1000,
-        points: 14, // 14 dages samlet visning, 1 døgn (24t) mellem hver prik
+        points: 14,
         format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`
       }
     };
@@ -827,7 +838,16 @@
       let successCount = 0;
 
       try {
-        const queryParam = encodeURIComponent(allUniqueTickers.join(','));
+        // Send både tickers og Yahoo symboler til backend
+        const querySymbols = [];
+        allUniqueTickers.forEach(ticker => {
+          const mapping = TICKER_MAP[ticker];
+          const yahooSym = mapping?.symbol || ticker;
+          querySymbols.push(yahooSym);
+          if (yahooSym !== ticker) querySymbols.push(ticker);
+        });
+
+        const queryParam = encodeURIComponent([...new Set(querySymbols)].join(','));
         const response = await fetch(`/api/quotes?symbols=${queryParam}`);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -837,8 +857,14 @@
         const quotes = jsonResponse.data || jsonResponse;
 
         allUniqueTickers.forEach(ticker => {
-          const q = quotes[ticker];
           const mapping = TICKER_MAP[ticker];
+          const yahooSym = mapping?.symbol || ticker;
+          
+          // Matcher respons på enten ticker, Yahoo symbol eller uppercase
+          const q = quotes[ticker] || 
+                    quotes[yahooSym] || 
+                    quotes[ticker.toUpperCase()] || 
+                    quotes[yahooSym.toUpperCase()];
 
           if (q && typeof q.price === 'number' && q.price > 0) {
             const finalDkkPrice = q.price;
@@ -885,15 +911,15 @@
 
       const totalCount = allUniqueTickers.length;
       if (successCount === totalCount && totalCount > 0) {
-        if (statusText) statusText.textContent = `Børs-API: Live (${successCount}/${totalCount})`;
+        if (statusText) statusText.textContent = `Yahoo Finance: Live (${successCount}/${totalCount})`;
         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
       } else if (successCount > 0) {
-        if (statusText) statusText.textContent = `Børs-API: Delvist (${successCount}/${totalCount})`;
+        if (statusText) statusText.textContent = `Yahoo Finance: Delvist (${successCount}/${totalCount})`;
         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
       } else {
         const { dkOpen, usOpen } = checkMarketStatus();
         const anyOpen = dkOpen || usOpen;
-        if (statusText) statusText.textContent = anyOpen ? 'Børs-API: Venter på svar' : 'Børser lukkede: Faste kurser';
+        if (statusText) statusText.textContent = anyOpen ? 'Yahoo Finance: Venter på svar' : 'Børser lukkede: Faste kurser';
         if (statusDot) statusDot.className = anyOpen ? 'w-2 h-2 rounded-full bg-amber-400' : 'w-2 h-2 rounded-full bg-slate-400';
       }
 
@@ -1091,52 +1117,6 @@
       }
     }
 
-    function renderApiInspectorTable() {
-      const tbody = document.getElementById('api-inspector-tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-
-      const combined = [...state.user.holdings, ...state.dad.holdings];
-      const allUnique = Array.from(new Map(combined.map(item => [item.ticker, item])).values());
-
-      allUnique.forEach(item => {
-        const mapping = TICKER_MAP[item.ticker] || { symbol: item.ticker, exchange: 'Global / US', isDK: false };
-        const meta = apiMetadata[item.ticker];
-        const isLive = meta && meta.status === 'LIVE';
-
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 text-xs font-mono';
-        tr.innerHTML = `
-          <td class="p-2.5 font-black text-black">
-            ${item.ticker}
-            <span class="text-slate-500 font-normal text-[11px] block">${item.name}</span>
-          </td>
-          <td class="p-2.5 text-black font-semibold">
-            ${mapping.symbol}
-            <span class="text-slate-400 text-[10px] block">${mapping.exchange}</span>
-          </td>
-          <td class="p-2.5 text-right text-slate-700 font-bold">
-            ${isLive && meta.rawPrice ? `${formatNumber(meta.rawPrice, 2)} ${meta.currency}` : '--'}
-          </td>
-          <td class="p-2.5 text-right font-black ${isLive ? 'text-emerald-700' : 'text-slate-700'}">
-            ${formatNumber(item.currentPrice, 2)} DKK
-            ${isLive && typeof meta.changePct === 'number' ? `<span class="block text-[10px] ${meta.changePct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${meta.changePct >= 0 ? '+' : ''}${formatNumber(meta.changePct, 2)}%</span>` : ''}
-          </td>
-          <td class="p-2.5 text-right">
-            ${isLive 
-              ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${meta.source || 'Server Live'}
-                 </span>`
-              : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-bold border border-slate-200">
-                   <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> ${meta?.source || 'Afventer'}
-                 </span>`
-            }
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
     function initHistoricalData() {
       let snapshots = getSnapshots();
       if (snapshots.length === 0) {
@@ -1148,7 +1128,6 @@
         });
 
         const now = Date.now();
-        // Opret en realistisk rolig historik uden tilfældige svingninger
         for (let i = 15; i >= 0; i--) {
           snapshots.push({
             time: now - (i * 60 * 1000),
@@ -1211,7 +1190,6 @@
       });
     }
 
-    // Hjælpefunktion til at hente registrerede data for et bestemt historisk tidspunkt
     function getSnapshotAt(history, targetTime, fallbackUser, fallbackDad, selectedAsset) {
       if (!history || history.length === 0) {
         return { user: fallbackUser, dad: fallbackDad, stockPrice: null };
@@ -1245,7 +1223,6 @@
       const { dkOpen, usOpen } = checkMarketStatus();
       const anyOpen = dkOpen || usOpen;
 
-      // Statusindikator over grafen
       const statusPill = document.getElementById('chart-market-status-pill');
       const subtitle = document.getElementById('chart-subtitle');
 
@@ -1276,7 +1253,6 @@
       const userSeries = [];
       const dadSeries = [];
 
-      // Generer præcise tidspunkter med eksakt stepMs mellem hvert punkt
       for (let i = conf.points - 1; i >= 0; i--) {
         const pointTime = now - (i * conf.stepMs);
         const pointDate = new Date(pointTime);
@@ -1492,9 +1468,7 @@
       }
     }
 
-    // ==========================================
-    // PORTEFØLJE MANAGER & YAHOO FINANCE LOGIK
-    // ==========================================
+    let lastLookupData = null;
 
     function openManageHoldingsModal(person = 'user') {
       activeModalPerson = person;
@@ -1602,6 +1576,75 @@
       const nameInput = document.getElementById('add-name-input');
       if (tickerInput) tickerInput.value = ticker;
       if (nameInput) nameInput.value = name;
+      verifyTickerFromBackend();
+    }
+
+    async function verifyTickerFromBackend() {
+      const tickerInput = document.getElementById('add-ticker-input');
+      const nameInput = document.getElementById('add-name-input');
+      const statusEl = document.getElementById('ticker-lookup-status');
+      const banner = document.getElementById('lookup-result-banner');
+      const bannerText = document.getElementById('lookup-result-text');
+      const searchIcon = document.getElementById('search-ticker-icon');
+
+      const rawTicker = tickerInput?.value.trim();
+      if (!rawTicker) {
+        showToast('Indtast venligst en ticker først');
+        return;
+      }
+
+      const ticker = rawTicker.toUpperCase();
+      if (searchIcon) searchIcon.classList.add('animate-spin');
+      if (statusEl) {
+        statusEl.textContent = 'Slår op på backend...';
+        statusEl.className = 'text-[10px] font-bold text-amber-600 animate-pulse';
+      }
+
+      try {
+        const response = await fetch(`/api/quotes?symbols=${encodeURIComponent(ticker)}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const json = await response.json();
+        const quotes = json.data || json;
+        const q = quotes[ticker] || quotes[ticker.toLowerCase()] || Object.values(quotes)[0];
+
+        if (q && typeof q.price === 'number' && q.price > 0) {
+          lastLookupData = q;
+          if (nameInput && !nameInput.value.trim() && q.name) {
+            nameInput.value = q.name;
+          }
+
+          if (banner && bannerText) {
+            banner.classList.remove('hidden');
+            bannerText.textContent = `✓ Fundet: ${q.name || ticker} — Kurs: ${formatNumber(q.price, 2)} DKK${q.priceUSD ? ` ($${formatNumber(q.priceUSD, 2)})` : ''}`;
+          }
+          if (statusEl) {
+            statusEl.textContent = 'Verificeret kurs!';
+            statusEl.className = 'text-[10px] font-bold text-emerald-600';
+          }
+        } else {
+          throw new Error('Ingen kursdata modtaget');
+        }
+      } catch (err) {
+        if (banner) banner.classList.add('hidden');
+        if (statusEl) {
+          statusEl.textContent = 'Ingen live-svar (kan tilføjes alligevel)';
+          statusEl.className = 'text-[10px] font-bold text-slate-500';
+        }
+      } finally {
+        if (searchIcon) searchIcon.classList.remove('animate-spin');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function applyLookupPriceToGav() {
+      if (lastLookupData && typeof lastLookupData.price === 'number') {
+        const gavInput = document.getElementById('add-gav-input');
+        if (gavInput) {
+          gavInput.value = lastLookupData.price.toFixed(2);
+          showToast(`Sat købskurs (GAV) til ${formatNumber(lastLookupData.price, 2)} kr.`);
+        }
+      }
     }
 
     function addNewStockSubmit() {
@@ -1630,12 +1673,13 @@
       }
 
       const person = state[activeModalPerson];
-
-      // Tjek om aktien allerede findes
       const existing = person.holdings.find(h => h.ticker === ticker);
+      const initialPrice = (lastLookupData && typeof lastLookupData.price === 'number') ? lastLookupData.price : gav;
+
       if (existing) {
         existing.qty += qty;
         existing.avgBuy = gav;
+        existing.currentPrice = initialPrice;
         showToast(`Opdaterede antal for ${ticker} til ${existing.qty} stk.`);
       } else {
         const isDK = ticker.endsWith('.CO');
@@ -1653,7 +1697,7 @@
           name: name,
           qty: qty,
           avgBuy: gav,
-          currentPrice: gav
+          currentPrice: initialPrice
         });
         showToast(`${ticker} er tilføjet til ${person.name}!`);
       }
@@ -1663,6 +1707,16 @@
       if (nameInput) nameInput.value = '';
       if (qtyInput) qtyInput.value = '';
       if (gavInput) gavInput.value = '';
+      lastLookupData = null;
+
+      const banner = document.getElementById('lookup-result-banner');
+      if (banner) banner.classList.add('hidden');
+
+      const statusEl = document.getElementById('ticker-lookup-status');
+      if (statusEl) {
+        statusEl.textContent = 'Gemmes automatisk';
+        statusEl.className = 'text-[10px] text-slate-500 font-semibold';
+      }
 
       saveCurrentPortfolioState();
       updateAssetDropdown();
@@ -1698,6 +1752,8 @@
     window.updateHoldingField = updateHoldingField;
     window.deleteHoldingPosition = deleteHoldingPosition;
     window.prefillStock = prefillStock;
+    window.verifyTickerFromBackend = verifyTickerFromBackend;
+    window.applyLookupPriceToGav = applyLookupPriceToGav;
     window.addNewStockSubmit = addNewStockSubmit;
     window.saveCashBalance = saveCashBalance;
 

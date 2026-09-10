@@ -89,7 +89,6 @@
 </head>
 <body class="min-h-screen grid-pattern selection:bg-frost-200 selection:text-frost-900 pb-16">
 
-  <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
       
@@ -115,18 +114,18 @@
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-        <!-- Market Clocks (DK + US) -->
+        <!-- Market Clocks (DK + US) with exact Copenhagen exchange hours -->
         <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-black">
           <span class="flex items-center gap-1 font-bold text-[11px] sm:text-xs">
             <i data-lucide="clock" class="w-3.5 h-3.5 text-frost-600"></i>
             <span id="market-clock">--:--:--</span>
           </span>
           <span class="text-slate-300">|</span>
-          <span id="cph-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200">
+          <span id="cph-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200" title="Nasdaq Copenhagen: Hverdage 09:00 - 17:00">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> DK: Lukket
           </span>
           <span class="text-slate-300">|</span>
-          <span id="us-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200">
+          <span id="us-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200" title="US Markeder: Hverdage 15:30 - 22:00 dansk tid">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> US: Lukket
           </span>
         </div>
@@ -135,11 +134,11 @@
         <div class="flex items-center gap-1.5">
           <div id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs">
             <span class="w-2 h-2 rounded-full bg-slate-400" id="api-status-dot"></span>
-            <span id="api-status-text">Yahoo Finance: Venter</span>
+            <span id="api-status-text">Yahoo Finance: Forbinder</span>
             <span class="text-[10px] text-slate-500 font-semibold" id="api-status-time">--:--:--</span>
           </div>
           
-          <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser fra Yahoo Finance nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
+          <button type="button" onclick="fetchLiveStockPrices(true)" title="Opdatér kurser nu (fastholder officielle lukkekurser hvis børsen er lukket)" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
             <i data-lucide="refresh-cw" class="w-4 h-4" id="api-refresh-icon"></i>
           </button>
         </div>
@@ -161,7 +160,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
           <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full bg-frost-500 animate-ping"></span>
+            <span class="w-3 h-3 rounded-full bg-frost-500"></span>
             <div>
               <span class="text-sm font-black text-black">Karl (Teampogi2300)</span>
               <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-frost-100 text-frost-800 ml-1.5 border border-frost-200">DIG</span>
@@ -267,39 +266,44 @@
       </div>
     </div>
 
-    <!-- AI Commentary Card (Daily 19:00 CEST Closing Bell Recap) -->
-    <div class="bg-gradient-to-br from-white via-indigo-50/20 to-sky-50/30 rounded-2xl p-4 sm:p-5 border border-indigo-100 shadow-xs relative overflow-hidden">
-      <div class="flex items-center justify-between pb-2.5 border-b border-indigo-100/60 mb-3 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold">
+    <!-- AI Commentary Accordion Card (Daily 19:00 CEST Closing Bell Recap) -->
+    <div class="bg-gradient-to-br from-white via-indigo-50/20 to-sky-50/30 rounded-2xl border border-indigo-100 shadow-xs overflow-hidden transition-all duration-300">
+      
+      <!-- Collapsible Clickable Header -->
+      <button type="button" onclick="toggleAiCommentary()" class="w-full p-4 flex items-center justify-between text-left hover:bg-indigo-50/30 transition">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold shrink-0">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
           </div>
           <div>
-            <span class="text-xs font-black text-black flex items-center gap-1.5">
-              Gemini Duel-Analytiker
-            </span>
-            <span class="text-[10px] font-mono text-slate-500 block sm:inline">
-              Daglig closing commentary (kl. 19:00 CEST)
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-black">Gemini Duel-Analytiker</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                Daglig Status (kl. 19:00)
+              </span>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500">
+              Klik for at læse dagens analyse af lukkekurser og håneret
             </span>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span id="ai-commentary-status" class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" id="ai-status-dot"></span>
-            Dagens Status (kl. 19:00)
-          </span>
-        </div>
-      </div>
 
-      <div class="relative">
+        <div class="flex items-center gap-2">
+          <span id="ai-toggle-text" class="text-xs font-mono font-bold text-indigo-600 hidden sm:inline">Åbn analyse</span>
+          <i data-lucide="chevron-down" id="ai-toggle-chevron" class="w-4 h-4 text-indigo-500 transition-transform duration-300"></i>
+        </div>
+      </button>
+
+      <!-- Collapsed Content Body (hidden by default) -->
+      <div id="ai-commentary-body" class="hidden px-4 pb-4 pt-1 border-t border-indigo-100/60 space-y-2.5">
         <p id="ai-commentary-text" class="font-sans text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
           Indlæser dagens AI-status...
         </p>
-      </div>
 
-      <div class="mt-2.5 pt-2 border-t border-indigo-100/40 flex items-center justify-between text-[10px] font-mono text-slate-400">
-        <span id="ai-commentary-timestamp">Gemini 3 Flash • Analyserer lukkekurser og føring</span>
-        <span class="hidden sm:inline">Ikke-interaktiv • Opdateres 1 gang dagligt</span>
+        <div class="pt-2 border-t border-indigo-100/40 flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span id="ai-commentary-timestamp">Gemini 3 Flash • Analyserer lukkekurser</span>
+          <span class="hidden sm:inline">Opdateres 1 gang dagligt</span>
+        </div>
       </div>
     </div>
 
@@ -320,7 +324,7 @@
               </span>
             </div>
             <p class="text-[11px] font-mono text-slate-500" id="chart-subtitle">
-              Live børskurser • Ingen kunstige udsving
+              Live børskurser • Faste lukkekurser når børsen er lukket
             </p>
           </div>
         </div>
@@ -379,7 +383,7 @@
           </span>
         </div>
         <div class="text-[11px] text-slate-500">
-          *Opdaterer automatisk hvert 60. sekund (eller via 🔄)
+          *Opdaterer automatisk kun i åbningstiden (eller via 🔄)
         </div>
       </div>
     </div>
@@ -646,6 +650,8 @@
     const CUSTOM_STATE_KEY = 'aktieligaen_custom_portfolios_v1';
     const AI_COMMENTARY_KEY = 'aktieligaen_gemini_commentary_v1';
 
+    let hasInitializedQuotes = false;
+
     const state = {
       user: {
         name: 'Karl (Teampogi2300)',
@@ -735,15 +741,15 @@
       const partMap = {};
       parts.forEach(p => partMap[p.type] = p.value);
 
-      const dayName = partMap.weekday;
+      const dayName = partMap.weekday; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
       const isWeekday = !['Sat', 'Sun'].includes(dayName);
       const hour = parseInt(partMap.hour, 10);
       const min = parseInt(partMap.minute, 10);
       const timeVal = hour + (min / 60);
 
-      // Nasdaq Copenhagen: 09:00 - 17:00 CET/CEST
+      // Nasdaq Copenhagen: 09:00 - 17:00 CET/CEST på hverdage
       const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
-      // US Markets: 15:30 - 22:00 Dansk tid
+      // US Markeder (NYSE/NASDAQ): 15:30 - 22:00 Dansk tid på hverdage
       const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
 
       return { dkOpen, usOpen };
@@ -754,6 +760,31 @@
       const { dkOpen, usOpen } = checkMarketStatus();
       if (!info) return dkOpen || usOpen;
       return info.isDK ? dkOpen : usOpen;
+    }
+
+    // Tjekker om et historisk tidspunkt faldt i åbningstiden for en børs
+    function isMarketOpenAt(timestamp, isDK) {
+      const d = new Date(timestamp);
+      const cphFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Copenhagen',
+        hour12: false,
+        weekday: 'short',
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+      const parts = cphFormatter.formatToParts(d);
+      const partMap = {};
+      parts.forEach(p => partMap[p.type] = p.value);
+
+      const dayName = partMap.weekday;
+      const isWeekday = !['Sat', 'Sun'].includes(dayName);
+      if (!isWeekday) return false;
+
+      const hour = parseInt(partMap.hour, 10);
+      const min = parseInt(partMap.minute, 10);
+      const timeVal = hour + (min / 60);
+
+      return isDK ? (timeVal >= 9.0 && timeVal < 17.0) : (timeVal >= 15.5 && timeVal < 22.0);
     }
 
     function getSnapshots() {
@@ -770,6 +801,9 @@
     }
 
     function recordSnapshot() {
+      const { dkOpen, usOpen } = checkMarketStatus();
+      const anyOpen = dkOpen || usOpen;
+
       const userTotal = getPortfolioTotal(state.user);
       const dadTotal = getPortfolioTotal(state.dad);
       const stockPrices = {};
@@ -787,45 +821,64 @@
 
       const history = getSnapshots();
       const last = history[history.length - 1];
-      if (!last || Math.abs(last.user - entry.user) > 0.1 || Math.abs(last.dad - entry.dad) > 0.1 || (entry.time - last.time > 60000)) {
+
+      // Hvis børsen er åben, gemmes reelle ændringer eller 60-sekunders intervaller.
+      // Hvis børserne er lukkede, optages kun ét fastholdt snapshot, så grafen er 100% flad.
+      if (!last) {
         history.push(entry);
-        if (history.length > 600) history.shift();
-        try {
-          localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(history));
-        } catch (e) {}
+      } else if (anyOpen) {
+        if (Math.abs(last.user - entry.user) > 0.1 || Math.abs(last.dad - entry.dad) > 0.1 || (entry.time - last.time > 60000)) {
+          history.push(entry);
+        }
+      } else {
+        // Begge børser lukkede: fasthold seneste lukkekurser uden afvigelser
+        if (entry.time - last.time > 300000) {
+          history.push({
+            time: entry.time,
+            user: last.user,
+            dad: last.dad,
+            stocks: { ...last.stocks }
+          });
+        }
       }
+
+      if (history.length > 600) history.shift();
+      try {
+        localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(history));
+      } catch (e) {}
+
       return history;
     }
 
     const INTERVAL_CONFIGS = {
       '1m': {
         stepMs: 1 * 60 * 1000,
-        points: 30,
+        points: 30, // 30 minutter
         format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
       },
       '15m': {
         stepMs: 15 * 60 * 1000,
-        points: 32,
+        points: 32, // 8 timer
         format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
       },
       '30m': {
         stepMs: 30 * 60 * 1000,
-        points: 36,
+        points: 36, // 18 timer
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
       },
       '1h': {
         stepMs: 60 * 60 * 1000,
-        points: 24,
+        points: 24, // 24 timer (1 time pr. prik)
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours().toString().padStart(2, '0')}:00`
       },
       '12h': {
         stepMs: 12 * 60 * 60 * 1000,
-        points: 14,
+        points: 14, // 7 dage
         format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`
       },
       '1d': {
         stepMs: 24 * 60 * 60 * 1000,
-        points: 14,
+        points: 14, // 14 dage
         format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`
       }
     };
@@ -866,16 +919,18 @@
 
       const statusText = document.getElementById('api-status-text');
       const statusDot = document.getElementById('api-status-dot');
-      if (statusText) statusText.textContent = 'Henter børskurser...';
-      if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+      const { dkOpen, usOpen } = checkMarketStatus();
+      const anyOpen = dkOpen || usOpen;
+
+      if (statusText) statusText.textContent = anyOpen ? 'Henter børskurser...' : 'Synkroniserer lukkekurser...';
+      if (statusDot) statusDot.className = anyOpen ? 'w-2 h-2 rounded-full bg-amber-500 animate-ping' : 'w-2 h-2 rounded-full bg-slate-400';
 
       const combined = [...state.user.holdings, ...state.dad.holdings];
       const allUniqueTickers = [...new Set(combined.map(item => item.ticker))];
 
-      let successCount = 0;
+      let updatedCount = 0;
 
       try {
-        // Send både tickers og Yahoo symboler til backend
         const querySymbols = [];
         allUniqueTickers.forEach(ticker => {
           const mapping = TICKER_MAP[ticker];
@@ -896,8 +951,8 @@
         allUniqueTickers.forEach(ticker => {
           const mapping = TICKER_MAP[ticker];
           const yahooSym = mapping?.symbol || ticker;
-          
-          // Matcher respons på enten ticker, Yahoo symbol eller uppercase
+          const isTickerOpen = isTickerMarketOpen(ticker);
+
           const q = quotes[ticker] || 
                     quotes[yahooSym] || 
                     quotes[ticker.toUpperCase()] || 
@@ -910,30 +965,38 @@
               const h = holdings.find(item => item.ticker === ticker);
               if (h) {
                 const old = h.currentPrice;
-                h.currentPrice = finalDkkPrice;
 
-                if (Math.abs(finalDkkPrice - old) > 0.01) {
-                  const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
-                  if (cell) {
-                    cell.classList.remove('flash-up', 'flash-down');
-                    void cell.offsetWidth;
-                    cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
+                // NØGLEREGEL: Opdater KUN kursen, hvis børsen for denne aktie er ÅBEN,
+                // eller hvis det er første indlæsning / manuel synkronisering af lukkekurser.
+                if (isTickerOpen || !hasInitializedQuotes || isManual) {
+                  h.currentPrice = finalDkkPrice;
+
+                  // Flash-animationer må KUN køre i åbningstiden, så siden ikke blinker ved lukketid
+                  if (isTickerOpen && Math.abs(finalDkkPrice - old) > 0.01) {
+                    const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
+                    if (cell) {
+                      cell.classList.remove('flash-up', 'flash-down');
+                      void cell.offsetWidth;
+                      cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
+                    }
                   }
                 }
               }
             });
 
             apiMetadata[ticker] = {
-              status: 'LIVE',
+              status: isTickerOpen ? 'LIVE' : 'CLOSED',
               rawPrice: q.priceUSD !== null && q.priceUSD !== undefined ? q.priceUSD : q.price,
               currency: q.priceUSD !== null && q.priceUSD !== undefined ? 'USD' : 'DKK',
               changePct: typeof q.changePercent === 'number' ? q.changePercent : 0,
-              source: q.source || 'Server-API',
+              source: isTickerOpen ? (mapping?.isDK ? 'Yahoo (CPH Åben)' : 'Yahoo (US Åben)') : 'Officiel Lukkekurs (Børs Lukket)',
               lastFetched: new Date()
             };
-            successCount++;
+            updatedCount++;
           }
         });
+
+        hasInitializedQuotes = true;
 
       } catch (err) {
         console.warn('API kald ikke tilgængeligt, fastholder verificerede kurser:', err);
@@ -946,18 +1009,19 @@
       lastApiSync = new Date();
       const timeStr = lastApiSync.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      const totalCount = allUniqueTickers.length;
-      if (successCount === totalCount && totalCount > 0) {
-        if (statusText) statusText.textContent = `Yahoo Finance: Live (${successCount}/${totalCount})`;
-        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-      } else if (successCount > 0) {
-        if (statusText) statusText.textContent = `Yahoo Finance: Delvist (${successCount}/${totalCount})`;
-        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+      // Opdater status badge afhængigt af markedets tilstand
+      if (!anyOpen) {
+        if (statusText) statusText.textContent = 'Børser lukkede (Fast lukkekurs)';
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+      } else if (dkOpen && usOpen) {
+        if (statusText) statusText.textContent = `Yahoo Finance: Live (DK & US åbne)`;
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      } else if (dkOpen) {
+        if (statusText) statusText.textContent = `Yahoo Finance: Live (DK åben • US lukket)`;
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
       } else {
-        const { dkOpen, usOpen } = checkMarketStatus();
-        const anyOpen = dkOpen || usOpen;
-        if (statusText) statusText.textContent = anyOpen ? 'Yahoo Finance: Venter på svar' : 'Børser lukkede: Faste kurser';
-        if (statusDot) statusDot.className = anyOpen ? 'w-2 h-2 rounded-full bg-amber-400' : 'w-2 h-2 rounded-full bg-slate-400';
+        if (statusText) statusText.textContent = `Yahoo Finance: Live (US åben • DK lukket)`;
+        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
       }
 
       const timeEl = document.getElementById('api-status-time');
@@ -970,7 +1034,7 @@
       isFetchingApi = false;
 
       if (isManual) {
-        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser opdateret!` : 'Kurser fastholdt.');
+        showToast(anyOpen ? 'Live børskurser opdateret!' : 'Børser lukkede: Lukkekurser er synkroniseret og fastfrosne.');
       }
     }
 
@@ -1083,6 +1147,7 @@
         const pnlKr = totalVal - totalCost;
         const pnlPct = totalCost > 0 ? (pnlKr / totalCost) * 100 : 0;
         const isPos = pnlKr >= 0;
+        const isOpen = isTickerMarketOpen(stock.ticker);
 
         totalCostSum += totalCost;
         totalEquitySum += totalVal;
@@ -1091,8 +1156,11 @@
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
           <td class="p-2.5 sm:p-3">
-            <span class="font-extrabold text-black block">${stock.ticker}</span>
-            <span class="text-[10px] text-slate-500 block truncate max-w-[120px] sm:max-w-[160px]" title="${stock.name}">${stock.name}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}" title="${isOpen ? 'Børs Åben (Live kurs)' : 'Børs Lukket (Fast lukkekurs)'}"></span>
+              <span class="font-extrabold text-black block">${stock.ticker}</span>
+            </div>
+            <span class="text-[10px] text-slate-500 block truncate max-w-[120px] sm:max-w-[160px] pl-3.5" title="${stock.name}">${stock.name}</span>
           </td>
           <td class="p-2.5 sm:p-3 text-right font-bold text-black">${formatNumber(stock.qty, 0)}</td>
           <td class="p-2.5 sm:p-3 text-right font-bold ${isPos ? 'text-emerald-600' : 'text-rose-600'}">
@@ -1101,6 +1169,7 @@
           </td>
           <td class="p-2.5 sm:p-3 text-right font-black text-black" id="price-${stock.ticker}-${personKey}">
             ${formatNumber(stock.currentPrice, 2)} kr.
+            <span class="block text-[9px] font-normal text-slate-400 font-mono">${isOpen ? 'LIVE' : 'LUKKET'}</span>
           </td>
           <td class="p-2.5 sm:p-3 text-right font-semibold text-slate-600">${formatNumber(stock.avgBuy, 2)} kr.</td>
           <td class="p-2.5 sm:p-3 text-right font-extrabold text-black">${formatNumber(totalVal, 2)} kr.</td>
@@ -1165,6 +1234,7 @@
         });
 
         const now = Date.now();
+        // Opretter en ren og stabil historik
         for (let i = 15; i >= 0; i--) {
           snapshots.push({
             time: now - (i * 60 * 1000),
@@ -1192,7 +1262,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: { duration: 250 },
+          animation: { duration: 200 },
           interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
@@ -1219,7 +1289,9 @@
               ticks: {
                 color: '#0f172a',
                 font: { family: 'JetBrains Mono', size: 11, weight: 'bold' },
-                callback: v => formatNumber(v, 0) + ' kr.'
+                callback: function(v) {
+                  return state.selectedAsset === 'TOTAL' ? formatNumber(v, 0) + ' kr.' : formatNumber(v, 2) + ' kr.';
+                }
               }
             }
           }
@@ -1268,7 +1340,7 @@
       if (statusPill) {
         if (targetIsOpen) {
           statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1';
-          statusPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Børs Åben';
+          statusPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Børs Åben (Live kurser)';
         } else {
           statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1';
           statusPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Børs Lukket (Fast lukkekurs)';
@@ -1277,8 +1349,8 @@
 
       if (subtitle) {
         subtitle.textContent = targetIsOpen
-          ? `Opdateres automatisk hvert 60. sekund med reelle børskurser`
-          : `Markedet er lukket. Grafen fastholder seneste officielle lukkekurser uden kunstige udsving.`;
+          ? `Børsen er åben. Kurserne opdateres live hvert 60. sekund.`
+          : `Børsen er lukket. Grafen og kurserne er 100% fastfrosne på seneste officielle lukkekurs uden udsving.`;
       }
 
       const snapshots = getSnapshots();
@@ -1298,14 +1370,23 @@
         const dataAtPoint = getSnapshotAt(snapshots, pointTime, currentU, currentD, state.selectedAsset);
 
         if (state.selectedAsset === 'TOTAL') {
-          userSeries.push(i === 0 ? currentU : dataAtPoint.user);
-          dadSeries.push(i === 0 ? currentD : dataAtPoint.dad);
+          // Hvis begge markeder er lukkede nu og i hele dette interval, fastholdes den præcise lukkekurs fladt
+          if (!anyOpen && i < 15) {
+            userSeries.push(currentU);
+            dadSeries.push(currentD);
+          } else {
+            userSeries.push(i === 0 ? currentU : dataAtPoint.user);
+            dadSeries.push(i === 0 ? currentD : dataAtPoint.dad);
+          }
         } else {
           const currentStockPrice = (state.user.holdings.find(h => h.ticker === state.selectedAsset)?.currentPrice)
             || (state.dad.holdings.find(h => h.ticker === state.selectedAsset)?.currentPrice)
             || 100;
 
-          const priceAtPoint = (i === 0 || dataAtPoint.stockPrice === null)
+          const isStockOpen = isTickerMarketOpen(state.selectedAsset);
+          
+          // Hvis enkeltaktien er lukket, forbliver hele grafen i den lukkede periode 100% flad på lukkekursen
+          const priceAtPoint = (!isStockOpen && i < 20) || (i === 0 || dataAtPoint.stockPrice === null)
             ? currentStockPrice
             : dataAtPoint.stockPrice;
 
@@ -1327,7 +1408,7 @@
               borderWidth: 2.5,
               tension: 0.1,
               fill: true,
-              pointRadius: 3,
+              pointRadius: targetIsOpen ? 3 : 1.5,
               pointHoverRadius: 6
             },
             {
@@ -1338,7 +1419,7 @@
               borderWidth: 2.5,
               tension: 0.1,
               fill: true,
-              pointRadius: 3,
+              pointRadius: targetIsOpen ? 3 : 1.5,
               pointHoverRadius: 6
             }
           ];
@@ -1351,7 +1432,7 @@
             borderWidth: 2.5,
             tension: 0.1,
             fill: true,
-            pointRadius: 3,
+            pointRadius: targetIsOpen ? 3 : 1.5,
             pointHoverRadius: 6
           }];
         } else {
@@ -1363,7 +1444,7 @@
             borderWidth: 2.5,
             tension: 0.1,
             fill: true,
-            pointRadius: 3,
+            pointRadius: targetIsOpen ? 3 : 1.5,
             pointHoverRadius: 6
           }];
         }
@@ -1381,7 +1462,7 @@
             borderWidth: 2.5,
             tension: 0.1,
             fill: true,
-            pointRadius: 3,
+            pointRadius: targetIsOpen ? 3 : 1.5,
             pointHoverRadius: 6
           });
         }
@@ -1394,7 +1475,7 @@
             borderWidth: 2.5,
             tension: 0.1,
             fill: true,
-            pointRadius: 3,
+            pointRadius: targetIsOpen ? 3 : 1.5,
             pointHoverRadius: 6
           });
         }
@@ -1491,7 +1572,7 @@
             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
             : 'bg-rose-50 text-rose-700 border border-rose-200'
         }`;
-        dkBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dkOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> DK: ${dkOpen ? 'Åben' : 'Lukket'}`;
+        dkBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dkOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> DK: ${dkOpen ? 'Åben (09-17)' : 'Lukket'}`;
       }
 
       const usBadge = document.getElementById('us-market-badge');
@@ -1501,7 +1582,7 @@
             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
             : 'bg-rose-50 text-rose-700 border border-rose-200'
         }`;
-        usBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${usOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> US: ${usOpen ? 'Åben' : 'Lukket'}`;
+        usBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${usOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> US: ${usOpen ? 'Åben (15:30-22)' : 'Lukket'}`;
       }
     }
 
@@ -1633,7 +1714,7 @@
       const ticker = rawTicker.toUpperCase();
       if (searchIcon) searchIcon.classList.add('animate-spin');
       if (statusEl) {
-        statusEl.textContent = 'Slår op på backend...';
+        statusEl.textContent = 'Slår op på Yahoo Finance...';
         statusEl.className = 'text-[10px] font-bold text-amber-600 animate-pulse';
       }
 
@@ -1761,7 +1842,6 @@
       refreshChartData();
       renderManageHoldingsTable();
 
-      // Hent live kurser for den nye aktie
       fetchLiveStockPrices(false);
     }
 
@@ -1776,10 +1856,6 @@
         showToast(`Bankkonto opdateret for ${state[activeModalPerson].name}`);
       }
     }
-
-    // ===================================================
-    // GEMINI 3 FLASH: DAGLIG 19:00 CEST AI-KOMMENTATOR
-    // ===================================================
 
     function toggleAiCommentary() {
       const body = document.getElementById('ai-commentary-body');
@@ -1801,7 +1877,6 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // Finder dagens relevante kommentarcyklus (hvis før 19:00 CEST, benyttes gårsdagens dato)
     function getCopenhagenCycleDate() {
       const now = new Date();
       const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -1820,7 +1895,6 @@
       const dateStr = `${map.year}-${map.month}-${map.day}`;
 
       if (hour < 19) {
-        // Før kl. 19:00 CEST hører vi stadig til gårsdagens afslutning
         const d = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const yParts = formatter.formatToParts(d);
         const yMap = {};
@@ -1836,7 +1910,6 @@
 
       const targetCycle = getCopenhagenCycleDate();
 
-      // 1. Tjek om vi allerede har gemt dagens analyse lokalt
       let cached = null;
       try {
         const raw = localStorage.getItem(AI_COMMENTARY_KEY);
@@ -1866,7 +1939,6 @@
       const userPnlPct = ((userTotal - START_CAPITAL) / START_CAPITAL) * 100;
       const dadPnlPct = ((dadTotal - START_CAPITAL) / START_CAPITAL) * 100;
 
-      // 2. Prøv først backend ruten /api/commentary (hvis oprettet på Vercel)
       try {
         const payload = {
           userTotal,
@@ -1905,15 +1977,10 @@
             return;
           }
         }
-      } catch (backendErr) {
-        // Backend ikke oprettet endnu, fortsæt til intelligent fallback
-      }
+      } catch (backendErr) {}
 
-      // 3. Intelligent fallback (hvis API-nøgle endnu ikke er indsat i Vercel)
-      const leaderName = diff >= 0 ? 'Karl (Teampogi2300)' : 'Kim';
-      const chaserName = diff >= 0 ? 'Kim' : 'Karl';
+      // Intelligent fallback
       const absDiffStr = formatNumber(Math.abs(diff), 2);
-      
       const fallbackText = diff >= 0
         ? `Ved dagens opgørelse kl. 19:00 fastholder Karl føringen i Aktieligaen med et forspring på +${absDiffStr} DKK foran Kim. Teampogi2300 trækker pænt på de teknologitunge positioner, mens Kim afventer modtræk på de cykliske aktier. Håneretten over middagsbordet forbliver solidt i Karls hænder indtil i morgen!`
         : `Kim har overtaget taktstokken og lagt sig i spidsen med et forspring på +${absDiffStr} DKK foran Karl. Et stærkt defensivt greb i de industrielle positioner har lagt pres på Teampogi2300. Der er dømt pres på Karl inden næste børsåbning!`;
@@ -1937,7 +2004,6 @@
       }
     }
 
-    // Global eksponering
     window.fetchLiveStockPrices = fetchLiveStockPrices;
     window.setChartInterval = setChartInterval;
     window.setChartView = setChartView;
@@ -1969,17 +2035,21 @@
       // Første live hentning
       fetchLiveStockPrices(false);
 
-      // Hent eller vis dagens Gemini AI-kommentar (kl. 19:00 CEST cyklus)
-      triggerDailyAiCommentary(false);
-
-      // Tjek hvert 5. minut om klokken er passeret 19:00 CEST for en ny daglig status
+      // Tjek hvert 5. minut om klokken er passeret 19:00 CEST for daglig status
       setInterval(() => {
         triggerDailyAiCommentary(false);
       }, 5 * 60 * 1000);
 
-      // Opdater automatisk hvert 60. sekund
+      // Automatisk opdatering hvert 60. sekund
       setInterval(() => {
-        fetchLiveStockPrices(false);
+        const { dkOpen, usOpen } = checkMarketStatus();
+        // Hvis mindst én børs er åben, hentes nye livekurser
+        if (dkOpen || usOpen) {
+          fetchLiveStockPrices(false);
+        } else {
+          // Begge lukkede: hold kurserne helt fastfrosne
+          refreshChartData();
+        }
       }, 60000);
 
       if (window.lucide) {

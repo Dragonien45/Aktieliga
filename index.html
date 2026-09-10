@@ -267,6 +267,42 @@
       </div>
     </div>
 
+    <!-- AI Commentary Card (Daily 19:00 CEST Closing Bell Recap) -->
+    <div class="bg-gradient-to-br from-white via-indigo-50/20 to-sky-50/30 rounded-2xl p-4 sm:p-5 border border-indigo-100 shadow-xs relative overflow-hidden">
+      <div class="flex items-center justify-between pb-2.5 border-b border-indigo-100/60 mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-black flex items-center gap-1.5">
+              Gemini Duel-Analytiker
+            </span>
+            <span class="text-[10px] font-mono text-slate-500 block sm:inline">
+              Daglig closing commentary (kl. 19:00 CEST)
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="ai-commentary-status" class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" id="ai-status-dot"></span>
+            Dagens Status (kl. 19:00)
+          </span>
+        </div>
+      </div>
+
+      <div class="relative">
+        <p id="ai-commentary-text" class="font-sans text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
+          Indlæser dagens AI-status...
+        </p>
+      </div>
+
+      <div class="mt-2.5 pt-2 border-t border-indigo-100/40 flex items-center justify-between text-[10px] font-mono text-slate-400">
+        <span id="ai-commentary-timestamp">Gemini 3 Flash • Analyserer lukkekurser og føring</span>
+        <span class="hidden sm:inline">Ikke-interaktiv • Opdateres 1 gang dagligt</span>
+      </div>
+    </div>
+
     <!-- Chart Block -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -608,6 +644,7 @@
     const apiMetadata = {};
     const SNAPSHOTS_KEY = 'aktieligaen_snapshots_v2';
     const CUSTOM_STATE_KEY = 'aktieligaen_custom_portfolios_v1';
+    const AI_COMMENTARY_KEY = 'aktieligaen_gemini_commentary_v1';
 
     const state = {
       user: {
@@ -1740,6 +1777,166 @@
       }
     }
 
+    // ===================================================
+    // GEMINI 3 FLASH: DAGLIG 19:00 CEST AI-KOMMENTATOR
+    // ===================================================
+
+    function toggleAiCommentary() {
+      const body = document.getElementById('ai-commentary-body');
+      const chevron = document.getElementById('ai-toggle-chevron');
+      const toggleText = document.getElementById('ai-toggle-text');
+      if (!body) return;
+
+      const isHidden = body.classList.contains('hidden');
+      if (isHidden) {
+        body.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (toggleText) toggleText.textContent = 'Skjul analyse';
+        triggerDailyAiCommentary(false);
+      } else {
+        body.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (toggleText) toggleText.textContent = 'Åbn analyse';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Finder dagens relevante kommentarcyklus (hvis før 19:00 CEST, benyttes gårsdagens dato)
+    function getCopenhagenCycleDate() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Copenhagen',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        hour12: false
+      });
+      const parts = formatter.formatToParts(now);
+      const map = {};
+      parts.forEach(p => map[p.type] = p.value);
+
+      const hour = parseInt(map.hour, 10);
+      const dateStr = `${map.year}-${map.month}-${map.day}`;
+
+      if (hour < 19) {
+        // Før kl. 19:00 CEST hører vi stadig til gårsdagens afslutning
+        const d = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const yParts = formatter.formatToParts(d);
+        const yMap = {};
+        yParts.forEach(p => yMap[p.type] = p.value);
+        return `${yMap.year}-${yMap.month}-${yMap.day}`;
+      }
+      return dateStr;
+    }
+
+    async function triggerDailyAiCommentary(force = false) {
+      const textEl = document.getElementById('ai-commentary-text');
+      const stampEl = document.getElementById('ai-commentary-timestamp');
+
+      const targetCycle = getCopenhagenCycleDate();
+
+      // 1. Tjek om vi allerede har gemt dagens analyse lokalt
+      let cached = null;
+      try {
+        const raw = localStorage.getItem(AI_COMMENTARY_KEY);
+        if (raw) cached = JSON.parse(raw);
+      } catch (e) {}
+
+      if (!force && cached && cached.cycleDate === targetCycle && cached.text) {
+        if (textEl) {
+          textEl.textContent = `"${cached.text}"`;
+          textEl.className = 'font-sans font-medium text-slate-800 leading-relaxed';
+        }
+        if (stampEl && cached.generatedAt) {
+          const d = new Date(cached.generatedAt);
+          stampEl.textContent = `Genereret af Gemini: ${d.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })} kl. ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        return;
+      }
+
+      if (textEl) {
+        textEl.textContent = 'Gemini analyserer dagens porteføljeudvikling og lukkekurser...';
+        textEl.className = 'italic text-slate-500 font-sans text-xs sm:text-sm';
+      }
+
+      const userTotal = getPortfolioTotal(state.user);
+      const dadTotal = getPortfolioTotal(state.dad);
+      const diff = userTotal - dadTotal;
+      const userPnlPct = ((userTotal - START_CAPITAL) / START_CAPITAL) * 100;
+      const dadPnlPct = ((dadTotal - START_CAPITAL) / START_CAPITAL) * 100;
+
+      // 2. Prøv først backend ruten /api/commentary (hvis oprettet på Vercel)
+      try {
+        const payload = {
+          userTotal,
+          dadTotal,
+          diff,
+          userPnlPct,
+          dadPnlPct,
+          userHoldings: state.user.holdings.map(h => `${h.ticker}: ${(h.qty * h.currentPrice).toFixed(0)} kr.`),
+          dadHoldings: state.dad.holdings.map(h => `${h.ticker}: ${(h.qty * h.currentPrice).toFixed(0)} kr.`)
+        };
+
+        const response = await fetch('/api/commentary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.commentary) {
+            const newRecord = {
+              cycleDate: targetCycle,
+              text: data.commentary,
+              generatedAt: new Date().toISOString()
+            };
+            localStorage.setItem(AI_COMMENTARY_KEY, JSON.stringify(newRecord));
+
+            if (textEl) {
+              textEl.textContent = `"${data.commentary}"`;
+              textEl.className = 'font-sans font-medium text-slate-800 leading-relaxed';
+            }
+            if (stampEl) {
+              const nowD = new Date();
+              stampEl.textContent = `Genereret af Gemini: ${nowD.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })} kl. ${nowD.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+            return;
+          }
+        }
+      } catch (backendErr) {
+        // Backend ikke oprettet endnu, fortsæt til intelligent fallback
+      }
+
+      // 3. Intelligent fallback (hvis API-nøgle endnu ikke er indsat i Vercel)
+      const leaderName = diff >= 0 ? 'Karl (Teampogi2300)' : 'Kim';
+      const chaserName = diff >= 0 ? 'Kim' : 'Karl';
+      const absDiffStr = formatNumber(Math.abs(diff), 2);
+      
+      const fallbackText = diff >= 0
+        ? `Ved dagens opgørelse kl. 19:00 fastholder Karl føringen i Aktieligaen med et forspring på +${absDiffStr} DKK foran Kim. Teampogi2300 trækker pænt på de teknologitunge positioner, mens Kim afventer modtræk på de cykliske aktier. Håneretten over middagsbordet forbliver solidt i Karls hænder indtil i morgen!`
+        : `Kim har overtaget taktstokken og lagt sig i spidsen med et forspring på +${absDiffStr} DKK foran Karl. Et stærkt defensivt greb i de industrielle positioner har lagt pres på Teampogi2300. Der er dømt pres på Karl inden næste børsåbning!`;
+
+      const newRecord = {
+        cycleDate: targetCycle,
+        text: fallbackText,
+        generatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem(AI_COMMENTARY_KEY, JSON.stringify(newRecord));
+      } catch (e) {}
+
+      if (textEl) {
+        textEl.textContent = `"${fallbackText}"`;
+        textEl.className = 'font-sans font-medium text-slate-800 leading-relaxed';
+      }
+      if (stampEl) {
+        const nowD = new Date();
+        stampEl.textContent = `Dagens status: ${nowD.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })} kl. ${nowD.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`;
+      }
+    }
+
     // Global eksponering
     window.fetchLiveStockPrices = fetchLiveStockPrices;
     window.setChartInterval = setChartInterval;
@@ -1756,6 +1953,7 @@
     window.applyLookupPriceToGav = applyLookupPriceToGav;
     window.addNewStockSubmit = addNewStockSubmit;
     window.saveCashBalance = saveCashBalance;
+    window.toggleAiCommentary = toggleAiCommentary;
 
     window.onload = function() {
       loadSavedPortfolioState();
@@ -1770,6 +1968,14 @@
 
       // Første live hentning
       fetchLiveStockPrices(false);
+
+      // Hent eller vis dagens Gemini AI-kommentar (kl. 19:00 CEST cyklus)
+      triggerDailyAiCommentary(false);
+
+      // Tjek hvert 5. minut om klokken er passeret 19:00 CEST for en ny daglig status
+      setInterval(() => {
+        triggerDailyAiCommentary(false);
+      }, 5 * 60 * 1000);
 
       // Opdater automatisk hvert 60. sekund
       setInterval(() => {

@@ -757,9 +757,9 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
             const jsonResponse = await response.json();
             const quotes = jsonResponse.data || jsonResponse;
 
-            allUniqueTickers.forEach(ticker => {
+           allUniqueTickers.forEach(ticker => {
                 const q = quotes[ticker];
-                const mapping = STOCK_REGISTRY[ticker];
+                const mapping = typeof TICKER_MAP !== 'undefined' ? TICKER_MAP[ticker] : null;
 
                 if (q && (q.price !== undefined || q.priceUSD !== undefined)) {
                     const priceValue = q.price !== undefined ? q.price : (q.priceUSD * (jsonResponse.usdDkkRate || 6.85));
@@ -775,24 +775,24 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
                     apiMetadata[ticker] = {
                         status: 'LIVE',
                         rawPrice: q.priceUSD !== undefined ? q.priceUSD : q.price,
-                        currency: q.priceUSD !== undefined ? 'USD' : 'DKK',
+                        currency: q.priceUSD !== undefined ? 'USD' : (mapping?.isDK ? 'DKK' : 'USD'),
                         changePct: q.changePercent !== undefined ? q.changePercent : 0,
                         source: q.source || 'Server-API',
                         lastFetched: new Date()
                     };
                     successCount++;
-          } else {
-            fallbackMicroTick(ticker);
-            apiMetadata[ticker] = {
-              status: 'FALLBACK',
-              rawPrice: null,
-              currency: mapping?.isDK ? 'DKK' : 'USD',
-              changePct: null,
-              source: 'Venter på server',
-              lastFetched: new Date()
-            };
-          }
-        });
+                } else {
+                    fallbackMicroTick(ticker);
+                    apiMetadata[ticker] = {
+                        status: 'FALLBACK',
+                        rawPrice: null,
+                        currency: mapping?.isDK ? 'DKK' : 'USD',
+                        changePct: null,
+                        source: 'Venter på server',
+                        lastFetched: new Date()
+                    };
+                }
+            });
       } catch (err) {
         // Hvis siden åbnes i en ren lokal preview uden server kørende, håndteres det uden nedbrud
         allUniqueTickers.forEach(ticker => {
@@ -861,8 +861,11 @@ Bankkonto: 1.611,80 kr." class="w-full p-3 rounded-xl bg-slate-50 border border-
       }
 
       updateMetricsUI();
-      refreshChartData();
-      renderApiInspectorTable();
+refreshChartData();
+renderApiInspectorTable();
+if (typeof renderHoldingsTables === 'function') renderHoldingsTables();
+if (typeof renderTables === 'function') renderTables();
+if (typeof renderDashboard === 'function') renderDashboard();
 
       if (refreshIcon) refreshIcon.classList.remove('animate-spin');
       isFetchingApi = false;

@@ -31,6 +31,10 @@
               700: '#0369a1',
             },
             polar: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
               400: '#818cf8',
               500: '#6366f1',
               600: '#4f46e5',
@@ -90,7 +94,7 @@
       
       <!-- Brand & Competition Title -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-frost-600 to-frost-400 flex items-center justify-center text-white shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-frost-600 to-frost-400 flex items-center justify-center text-white shadow-sm shrink-0">
           <i data-lucide="swords" class="w-5 h-5"></i>
         </div>
         <div>
@@ -98,7 +102,7 @@
             <span class="font-mono text-[10px] tracking-wider uppercase font-bold text-frost-700 bg-frost-50 px-2 py-0.5 rounded border border-frost-200">
               Euroinvestor Aktieligaen
             </span>
-            <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700">
+            <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-700 hidden sm:inline-flex">
               <span class="w-2 h-2 rounded-full bg-frost-500 animate-pulse"></span>
               Live kurser via Vercel Backend
             </span>
@@ -109,30 +113,30 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <!-- Market Clocks (DK + US) -->
-        <div class="hidden lg:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-black">
-          <span class="flex items-center gap-1 font-bold">
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+        <!-- Market Clocks (DK + US) - visible across all responsive screens -->
+        <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-black">
+          <span class="flex items-center gap-1 font-bold text-[11px] sm:text-xs">
             <i data-lucide="clock" class="w-3.5 h-3.5 text-frost-600"></i>
             <span id="market-clock">--:--:--</span>
           </span>
           <span class="text-slate-300">|</span>
-          <span id="cph-market-badge" class="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> DK: Åben
+          <span id="cph-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> DK: Lukket
           </span>
           <span class="text-slate-300">|</span>
-          <span id="us-market-badge" class="inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> US: Åben
+          <span id="us-market-badge" class="inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors bg-rose-50 text-rose-700 border border-rose-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> US: Lukket
           </span>
         </div>
 
         <!-- Live Børs-API status indicator with manual refresh -->
         <div class="flex items-center gap-1.5">
-          <button type="button" onclick="openEditModal('api')" id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition shadow-xs">
+          <div id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs">
             <span class="w-2 h-2 rounded-full bg-slate-400" id="api-status-dot"></span>
             <span id="api-status-text">Børs-API: Venter</span>
             <span class="text-[10px] text-slate-500 font-semibold" id="api-status-time">--:--:--</span>
-          </button>
+          </div>
           
           <button type="button" onclick="fetchLiveStockPrices(true)" title="Hent seneste børskurser nu" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
             <i data-lucide="refresh-cw" class="w-4 h-4" id="api-refresh-icon"></i>
@@ -162,6 +166,9 @@
               <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-frost-100 text-frost-800 ml-1.5 border border-frost-200">DIG</span>
             </div>
           </div>
+          <button type="button" onclick="openManageHoldingsModal('user')" class="px-2.5 py-1 text-xs font-mono font-bold text-frost-700 bg-frost-50 hover:bg-frost-100 border border-frost-200 rounded-lg flex items-center gap-1 transition shadow-2xs">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Redigér
+          </button>
         </div>
 
         <!-- Orange Main Amount -->
@@ -205,6 +212,9 @@
               <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-polar-100 text-polar-800 ml-1.5 border border-polar-200">FAR</span>
             </div>
           </div>
+          <button type="button" onclick="openManageHoldingsModal('dad')" class="px-2.5 py-1 text-xs font-mono font-bold text-polar-700 bg-polar-50 hover:bg-polar-100 border border-polar-200 rounded-lg flex items-center gap-1 transition shadow-2xs">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Redigér
+          </button>
         </div>
 
         <!-- Orange Main Amount -->
@@ -264,11 +274,16 @@
             <i data-lucide="trending-up" class="w-4 h-4"></i>
           </div>
           <div>
-            <h2 class="text-sm font-black text-black tracking-tight" id="chart-main-title">
-              Realtids Duel: Samlet Portefølje
-            </h2>
-            <p class="text-[11px] font-mono text-slate-500">
-              Synkroniseres automatisk hvert 60. sekund med officielle børskurser
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-black text-black tracking-tight" id="chart-main-title">
+                Realtids Duel: Samlet Portefølje
+              </h2>
+              <span id="chart-market-status-pill" class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                Kontrollerer marked...
+              </span>
+            </div>
+            <p class="text-[11px] font-mono text-slate-500" id="chart-subtitle">
+              Live børskurser • Ingen kunstige udsving
             </p>
           </div>
         </div>
@@ -338,14 +353,20 @@
       <!-- KARL'S HOLDINGS -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
         <div>
-          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-frost-500"></span>
               <h3 class="text-sm font-black text-black">Karls Beholdning (Teampogi2300)</h3>
-              <span class="text-xs font-mono text-slate-500">8 positioner</span>
+              <span class="text-xs font-mono text-slate-500" id="user-count-badge">8 positioner</span>
             </div>
-            <div class="text-xs font-mono font-bold text-black">
-              Bankkonto: <span class="text-emerald-700" id="user-bank-header">1.611,80 kr.</span>
+            <div class="flex items-center gap-3">
+              <div class="text-xs font-mono font-bold text-black hidden sm:block">
+                Bankkonto: <span class="text-emerald-700" id="user-bank-header">1.611,80 kr.</span>
+              </div>
+              <button type="button" onclick="openManageHoldingsModal('user')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-mono text-xs font-bold transition shadow-xs">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>Redigér / Tilføj</span>
+              </button>
             </div>
           </div>
 
@@ -372,14 +393,20 @@
       <!-- KIM'S HOLDINGS -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
         <div>
-          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div class="p-4 sm:px-6 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-polar-500"></span>
               <h3 class="text-sm font-black text-black">Kims Beholdning</h3>
-              <span class="text-xs font-mono text-slate-500">6 positioner</span>
+              <span class="text-xs font-mono text-slate-500" id="dad-count-badge">6 positioner</span>
             </div>
-            <div class="text-xs font-mono font-bold text-black">
-              Bankkonto: <span class="text-emerald-700" id="dad-bank-header">3.753,22 kr.</span>
+            <div class="flex items-center gap-3">
+              <div class="text-xs font-mono font-bold text-black hidden sm:block">
+                Bankkonto: <span class="text-emerald-700" id="dad-bank-header">3.753,22 kr.</span>
+              </div>
+              <button type="button" onclick="openManageHoldingsModal('dad')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-polar-600 hover:bg-polar-700 text-white font-mono text-xs font-bold transition shadow-xs">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>Redigér / Tilføj</span>
+              </button>
             </div>
           </div>
 
@@ -407,151 +434,137 @@
 
   </main>
 
-  <!-- MODAL FOR DATA OG STATUS -->
-  <div id="edit-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+  <!-- MODAL: PORTEFØLJE MANAGER (YAHOO FINANCE & POSITIONER) -->
+  <div id="manage-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
       
+      <!-- Modal Header -->
       <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-        <div>
-          <h3 class="text-base font-black text-black flex items-center gap-2">
-            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-frost-600"></i>
-            Portefølje- og Datacenter
-          </h3>
-          <p class="text-xs text-slate-500 font-mono">
-            Hurtig import, live børskurs-inspektør og indstillinger
-          </p>
+        <div class="flex items-center gap-2.5">
+          <span id="modal-person-indicator" class="w-3 h-3 rounded-full bg-frost-500"></span>
+          <div>
+            <h3 class="text-base font-black text-black" id="modal-manage-title">
+              Administrer Portefølje
+            </h3>
+            <p class="text-xs text-slate-500 font-mono">
+              Opdater antal aktier, GAV eller tilføj nye via Yahoo Finance
+            </p>
+          </div>
         </div>
-        <button type="button" onclick="closeEditModal()" class="p-2 rounded-xl text-slate-400 hover:text-black hover:bg-slate-200 transition">
+
+        <button type="button" onclick="closeManageHoldingsModal()" class="p-2 rounded-xl text-slate-400 hover:text-black hover:bg-slate-200 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="flex items-center gap-2 px-5 pt-3 border-b border-slate-200 overflow-x-auto bg-white">
-        <button type="button" id="tab-btn-api" onclick="switchModalTab('api')" class="px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap flex items-center gap-1.5">
-          📡 Børs-API Status
-        </button>
-        <button type="button" id="tab-btn-import" onclick="switchModalTab('import')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap">
-          ⚡ Hurtig Import (Tekst)
-        </button>
-        <button type="button" id="tab-btn-settings" onclick="switchModalTab('settings')" class="px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap">
-          ⚙️ Navne & Kontanter
-        </button>
+      <!-- Person Switcher -->
+      <div class="flex items-center justify-between px-5 py-2.5 bg-slate-100/70 border-b border-slate-200">
+        <div class="inline-flex rounded-xl bg-white p-1 border border-slate-200 text-xs font-mono font-bold shadow-2xs">
+          <button type="button" id="modal-btn-person-user" onclick="switchModalPerson('user')" class="px-3 py-1 rounded-lg transition font-bold bg-frost-600 text-white shadow-xs">
+            Karl (Teampogi2300)
+          </button>
+          <button type="button" id="modal-btn-person-dad" onclick="switchModalPerson('dad')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-black">
+            Kim (Far)
+          </button>
+        </div>
+
+        <!-- Cash Adjustment Field -->
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <span class="text-slate-600 font-bold hidden sm:inline">Bankkonto:</span>
+          <div class="flex items-center gap-1">
+            <input type="number" id="modal-cash-input" step="0.01" class="w-28 px-2 py-1 rounded-lg border border-slate-300 text-right font-bold text-black focus:ring-2 focus:ring-frost-500 text-xs" />
+            <span class="text-slate-500 font-bold">kr.</span>
+            <button type="button" onclick="saveCashBalance()" class="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 font-bold text-slate-800 transition">
+              Gem
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="p-5 overflow-y-auto space-y-4 text-xs font-mono custom-scrollbar">
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-5 text-xs font-mono custom-scrollbar">
 
-        <!-- TAB 1: LIVE API STATUS -->
-        <div id="tab-content-api" class="space-y-4">
-          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-extrabold text-black">Aktivt Børs-Feed: Nasdaq Copenhagen + Finnhub US</span>
-              <span id="api-verified-pill" class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]">Forbinder...</span>
-            </div>
-            <p class="text-[11px]">
-              Viser realtidsdata direkte fra Vercel serverless ruten. Danske aktier afregnes i DKK, og US-aktier omregnes via markedskurs for USD/DKK.
-            </p>
+        <!-- Form: Tilføj Ny Aktie via Yahoo Finance -->
+        <div class="p-4 rounded-xl border border-frost-200 bg-frost-50/50 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-black flex items-center gap-1.5 text-xs sm:text-sm">
+              <i data-lucide="plus" class="w-4 h-4 text-frost-600"></i> Tilføj Ny Aktie (Yahoo Finance)
+            </span>
+            <span class="text-[10px] text-slate-500">Gemmes automatisk</span>
           </div>
 
-          <div class="border border-slate-200 rounded-xl overflow-hidden">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 border-b border-slate-200 text-black font-extrabold text-[11px]">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Ticker / Symbol</label>
+              <input type="text" id="add-ticker-input" placeholder="fx NVDA el. NOVO-B.CO" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold uppercase focus:ring-2 focus:ring-frost-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Navn (Valgfrit)</label>
+              <input type="text" id="add-name-input" placeholder="fx Nvidia Corp" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black focus:ring-2 focus:ring-frost-500" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Antal Stk.</label>
+              <input type="number" id="add-qty-input" min="1" step="1" placeholder="fx 50" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold focus:ring-2 focus:ring-frost-500 text-right" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Købskurs (GAV kr.)</label>
+              <input type="number" id="add-gav-input" min="0.01" step="0.01" placeholder="fx 890.50" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-black font-bold focus:ring-2 focus:ring-frost-500 text-right" />
+            </div>
+          </div>
+
+          <!-- Quick suggestion pills -->
+          <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] text-slate-500 font-semibold">Hurtigvalg:</span>
+              <button type="button" onclick="prefillStock('NVDA', 'NVIDIA Corp')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-black">+ NVDA</button>
+              <button type="button" onclick="prefillStock('NOVO-B.CO', 'Novo Nordisk B')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-black">+ NOVO-B.CO</button>
+              <button type="button" onclick="prefillStock('AAPL', 'Apple Inc')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-black">+ AAPL</button>
+              <button type="button" onclick="prefillStock('DSV.CO', 'DSV A/S')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-black">+ DSV.CO</button>
+            </div>
+
+            <button type="button" onclick="addNewStockSubmit()" class="px-3.5 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Tilføj
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabel over Nuværende Positioner med Redigering -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-black uppercase tracking-wider text-[11px]">Nuværende Aktier (Ret antal & GAV direkte)</span>
+            <span class="text-[10px] text-slate-500">Gemmes løbende i browseren</span>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-100 border-b border-slate-200 font-extrabold text-black text-[11px]">
                 <tr>
-                  <th class="p-2.5">Papir</th>
-                  <th class="p-2.5">Børs & Symbol</th>
-                  <th class="p-2.5 text-right">Rå Børskurs</th>
-                  <th class="p-2.5 text-right">Kurs i DKK</th>
-                  <th class="p-2.5 text-right">Kilde & Status</th>
+                  <th class="p-2.5">Aktie</th>
+                  <th class="p-2.5 text-right">Antal</th>
+                  <th class="p-2.5 text-right">Købskurs (GAV kr.)</th>
+                  <th class="p-2.5 text-right">Kurs Nu</th>
+                  <th class="p-2.5 text-center">Slet</th>
                 </tr>
               </thead>
-              <tbody id="api-inspector-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
+              <tbody id="manage-holdings-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
           </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <span class="text-[11px] text-slate-600 font-semibold" id="api-last-sync-label">Sidst synkroniseret: Venter...</span>
-            <button type="button" onclick="fetchLiveStockPrices(true)" class="px-3.5 py-1.5 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Opdatér Alle Kurser Nu
-            </button>
-          </div>
         </div>
 
-        <!-- TAB 2: IMPORT -->
-        <div id="tab-content-import" class="space-y-4 hidden">
-          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-700">
-            <span class="font-bold text-black block mb-1">📋 Kopiér direkte fra Aktieligaen (Euroinvestor)</span>
-            Marker tabellen med dine aktier på Euroinvestor og tryk Ctrl+C. Aflæser automatisk antal, navn og jeres <strong>købskurs i parentes (GAV)</strong>.
-          </div>
+      </div>
 
-          <div>
-            <label class="block font-bold text-black mb-1.5">Vælg hvem du importerer for:</label>
-            <div class="flex gap-4">
-              <label class="flex items-center gap-2 cursor-pointer font-bold text-black">
-                <input type="radio" name="importTarget" value="user" checked class="accent-frost-600">
-                Karl (Teampogi2300)
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer font-bold text-black">
-                <input type="radio" name="importTarget" value="dad" class="accent-polar-600">
-                Kim (Far)
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-black mb-1.5">Indsæt tabeltekst:</label>
-            <textarea id="import-text-input" rows="6" class="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-black font-mono text-xs focus:ring-2 focus:ring-frost-500 focus:outline-none"></textarea>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" onclick="importPortfolioText()" class="px-4 py-2 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs flex items-center gap-2">
-              <i data-lucide="check" class="w-4 h-4"></i> Importer og Opdater
-            </button>
-          </div>
-        </div>
-
-        <!-- TAB 3: SETTINGS -->
-        <div id="tab-content-settings" class="space-y-4 hidden">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-              <h4 class="font-bold text-black flex items-center gap-1.5 text-sm">
-                <span class="w-2 h-2 rounded-full bg-frost-500"></span> Karls Oplysninger
-              </h4>
-              <div>
-                <label class="block text-slate-500 text-[11px] mb-1">Spillernavn</label>
-                <input type="text" id="setting-user-name" value="Karl (Teampogi2300)" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
-              </div>
-              <div>
-                <label class="block text-slate-500 text-[11px] mb-1">Bankkonto (DKK)</label>
-                <input type="number" id="setting-user-cash" step="0.01" value="1611.80" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
-              </div>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-              <h4 class="font-bold text-black flex items-center gap-1.5 text-sm">
-                <span class="w-2 h-2 rounded-full bg-polar-500"></span> Kims Oplysninger
-              </h4>
-              <div>
-                <label class="block text-slate-500 text-[11px] mb-1">Spillernavn</label>
-                <input type="text" id="setting-dad-name" value="Kim" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
-              </div>
-              <div>
-                <label class="block text-slate-500 text-[11px] mb-1">Bankkonto (DKK)</label>
-                <input type="number" id="setting-dad-cash" step="0.01" value="3753.22" class="w-full p-2 rounded-lg bg-white border border-slate-300 text-black font-bold">
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" onclick="saveSettings()" class="px-4 py-2 rounded-xl bg-frost-600 hover:bg-frost-700 text-white font-bold transition shadow-xs">
-              Gem Ændringer
-            </button>
-          </div>
-        </div>
-
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500">Tip: Danske aktier bruger <code class="bg-slate-200 px-1 rounded">.CO</code> endelse</span>
+        <button type="button" onclick="closeManageHoldingsModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold transition shadow-xs">
+          Færdig & Luk
+        </button>
       </div>
 
     </div>
   </div>
 
+  <!-- Toast notification banner -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl font-mono text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <i data-lucide="info" class="w-4 h-4 text-frost-400"></i>
     <span id="toast-message">Besked</span>
@@ -576,6 +589,8 @@
     };
 
     const apiMetadata = {};
+    const SNAPSHOTS_KEY = 'aktieligaen_snapshots_v2';
+    const CUSTOM_STATE_KEY = 'aktieligaen_custom_portfolios_v1';
 
     const state = {
       user: {
@@ -583,42 +598,188 @@
         rank: '#412',
         cash: 1611.80,
         holdings: [
-          { ticker: 'VWS', name: 'Vestas Wind Systems A/S', qty: 228, avgBuy: 218.40, currentPrice: 218.40, history: [] },
-          { ticker: 'GN', name: 'GN Store Nord AS', qty: 1030, avgBuy: 96.92, currentPrice: 96.92, history: [] },
-          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 32, avgBuy: 3290.99, currentPrice: 3290.99, history: [] },
-          { ticker: 'MSTR', name: 'Strategy Inc', qty: 223, avgBuy: 895.31, currentPrice: 895.31, history: [] },
-          { ticker: 'GEV', name: 'GE Vernova', qty: 23, avgBuy: 6285.08, currentPrice: 6285.08, history: [] },
-          { ticker: 'TSLA', name: 'Tesla', qty: 41, avgBuy: 2396.25, currentPrice: 2396.25, history: [] },
-          { ticker: 'VST', name: 'Vistra Corp', qty: 102, avgBuy: 974.99, currentPrice: 974.99, history: [] },
-          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 785, avgBuy: 254.22, currentPrice: 254.22, history: [] }
-        ],
-        history: []
+          { ticker: 'VWS', name: 'Vestas Wind Systems A/S', qty: 228, avgBuy: 218.40, currentPrice: 218.40 },
+          { ticker: 'GN', name: 'GN Store Nord AS', qty: 1030, avgBuy: 96.92, currentPrice: 96.92 },
+          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 32, avgBuy: 3290.99, currentPrice: 3290.99 },
+          { ticker: 'MSTR', name: 'Strategy Inc', qty: 223, avgBuy: 895.31, currentPrice: 895.31 },
+          { ticker: 'GEV', name: 'GE Vernova', qty: 23, avgBuy: 6285.08, currentPrice: 6285.08 },
+          { ticker: 'TSLA', name: 'Tesla', qty: 41, avgBuy: 2396.25, currentPrice: 2396.25 },
+          { ticker: 'VST', name: 'Vistra Corp', qty: 102, avgBuy: 974.99, currentPrice: 974.99 },
+          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 785, avgBuy: 254.22, currentPrice: 254.22 }
+        ]
       },
       dad: {
         name: 'Kim',
         rank: '#428',
         cash: 3753.22,
         holdings: [
-          { ticker: 'DNORD', name: 'D/S Norden A/S', qty: 311, avgBuy: 383.60, currentPrice: 383.60, history: [] },
-          { ticker: 'MU', name: 'Micron Technology', qty: 31, avgBuy: 6468.12, currentPrice: 6468.12, history: [] },
-          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 54, avgBuy: 3324.97, currentPrice: 3324.97, history: [] },
-          { ticker: 'FCX', name: 'Freeport-McMoran', qty: 319, avgBuy: 495.57, currentPrice: 495.57, history: [] },
-          { ticker: 'VRT', name: 'Vertiv Holdings Co', qty: 75, avgBuy: 1830.78, currentPrice: 1830.78, history: [] },
-          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 779, avgBuy: 253.58, currentPrice: 253.58, history: [] }
-        ],
-        history: []
+          { ticker: 'DNORD', name: 'D/S Norden A/S', qty: 311, avgBuy: 383.60, currentPrice: 383.60 },
+          { ticker: 'MU', name: 'Micron Technology', qty: 31, avgBuy: 6468.12, currentPrice: 6468.12 },
+          { ticker: 'AMD', name: 'Advanced Micro Devices', qty: 54, avgBuy: 3324.97, currentPrice: 3324.97 },
+          { ticker: 'FCX', name: 'Freeport-McMoran', qty: 319, avgBuy: 495.57, currentPrice: 495.57 },
+          { ticker: 'VRT', name: 'Vertiv Holdings Co', qty: 75, avgBuy: 1830.78, currentPrice: 1830.78 },
+          { ticker: 'SMCI', name: 'Super Micro Computer', qty: 779, avgBuy: 253.58, currentPrice: 253.58 }
+        ]
       },
       chartView: 'duel',
       selectedAsset: 'TOTAL'
     };
 
+    let activeModalPerson = 'user';
+
+    function loadSavedPortfolioState() {
+      try {
+        const saved = localStorage.getItem(CUSTOM_STATE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.user && Array.isArray(parsed.user.holdings)) {
+            state.user = parsed.user;
+          }
+          if (parsed.dad && Array.isArray(parsed.dad.holdings)) {
+            state.dad = parsed.dad;
+          }
+          // Register dynamic tickers into TICKER_MAP
+          [...state.user.holdings, ...state.dad.holdings].forEach(h => {
+            if (!TICKER_MAP[h.ticker]) {
+              const isDK = h.ticker.toUpperCase().endsWith('.CO');
+              TICKER_MAP[h.ticker] = {
+                symbol: h.ticker,
+                name: h.name || h.ticker,
+                exchange: isDK ? 'CPH (DKK)' : 'US (USD)',
+                isDK: isDK
+              };
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Kunne ikke indlæse gemte porteføljedata', e);
+      }
+    }
+
+    function saveCurrentPortfolioState() {
+      try {
+        localStorage.setItem(CUSTOM_STATE_KEY, JSON.stringify({
+          user: state.user,
+          dad: state.dad
+        }));
+      } catch (e) {
+        console.warn('Kunne ikke gemme portefølje i localStorage', e);
+      }
+    }
+
+    function checkMarketStatus() {
+      const now = new Date();
+      
+      // Calculate based on Europe/Copenhagen time
+      const cphFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Copenhagen',
+        hour12: false,
+        weekday: 'short',
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+      const parts = cphFormatter.formatToParts(now);
+      const partMap = {};
+      parts.forEach(p => partMap[p.type] = p.value);
+
+      const dayName = partMap.weekday; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
+      const isWeekday = !['Sat', 'Sun'].includes(dayName);
+      const hour = parseInt(partMap.hour, 10);
+      const min = parseInt(partMap.minute, 10);
+      const timeVal = hour + (min / 60);
+
+      // Nasdaq Copenhagen: 09:00 - 17:00 CET/CEST
+      const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
+      // US Markets: 15:30 - 22:00 Danish time (09:30 - 16:00 EST/EDT)
+      const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
+
+      return { dkOpen, usOpen };
+    }
+
+    function isTickerMarketOpen(ticker) {
+      const info = TICKER_MAP[ticker];
+      const { dkOpen, usOpen } = checkMarketStatus();
+      if (!info) return dkOpen || usOpen;
+      return info.isDK ? dkOpen : usOpen;
+    }
+
+    function getSnapshots() {
+      try {
+        const data = localStorage.getItem(SNAPSHOTS_KEY);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {
+        console.warn('Kunne ikke læse gemte snapshots', e);
+      }
+      return [];
+    }
+
+    function recordSnapshot() {
+      const userTotal = getPortfolioTotal(state.user);
+      const dadTotal = getPortfolioTotal(state.dad);
+      const stockPrices = {};
+
+      [...state.user.holdings, ...state.dad.holdings].forEach(h => {
+        stockPrices[h.ticker] = h.currentPrice;
+      });
+
+      const entry = {
+        time: Date.now(),
+        user: parseFloat(userTotal.toFixed(2)),
+        dad: parseFloat(dadTotal.toFixed(2)),
+        stocks: stockPrices
+      };
+
+      const history = getSnapshots();
+      // Gem snapshot hvis der er reel ændring eller der er gået mindst 60 sekunder
+      const last = history[history.length - 1];
+      if (!last || Math.abs(last.user - entry.user) > 0.1 || Math.abs(last.dad - entry.dad) > 0.1 || (entry.time - last.time > 60000)) {
+        history.push(entry);
+        if (history.length > 600) history.shift();
+        try {
+          localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(history));
+        } catch (e) {}
+      }
+      return history;
+    }
+
+    /* Definition af præcise tidsintervaller:
+       - stepMs: Præcis tidsafstand mellem HVER prik på grafen
+       - points: Hvor mange prikker/tidsintervaller grafen viser samlet
+    */
     const INTERVAL_CONFIGS = {
-      '1m': { stepMinutes: 1, points: 25, curveMultiplier: 0.15, format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) },
-      '15m': { stepMinutes: 15, points: 24, curveMultiplier: 0.5, format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) },
-      '30m': { stepMinutes: 30, points: 24, curveMultiplier: 0.8, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}` },
-      '1h': { stepMinutes: 60, points: 24, curveMultiplier: 1.2, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:00` },
-      '12h': { stepMinutes: 720, points: 20, curveMultiplier: 1.8, format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}` },
-      '1d': { stepMinutes: 1440, points: 20, curveMultiplier: 2.5, format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}` }
+      '1m': {
+        stepMs: 1 * 60 * 1000,
+        points: 30, // 30 min samlet visning, 1 minut mellem hver prik
+        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+      },
+      '15m': {
+        stepMs: 15 * 60 * 1000,
+        points: 32, // 8 timers samlet visning, 15 min mellem hver prik
+        format: d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
+      },
+      '30m': {
+        stepMs: 30 * 60 * 1000,
+        points: 36, // 18 timers samlet visning, 30 min mellem hver prik
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`
+      },
+      '1h': {
+        stepMs: 60 * 60 * 1000,
+        points: 24, // 24 timers tidslinje, PRÆCIS 1 time mellem hver prik
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours().toString().padStart(2, '0')}:00`
+      },
+      '12h': {
+        stepMs: 12 * 60 * 60 * 1000,
+        points: 14, // 7 dages samlet visning, 12 timer mellem hver prik
+        format: d => `${d.getDate()}/${d.getMonth() + 1} ${d.getHours() < 12 ? '08:00' : '20:00'}`
+      },
+      '1d': {
+        stepMs: 24 * 60 * 60 * 1000,
+        points: 14, // 14 dages samlet visning, 1 døgn (24t) mellem hver prik
+        format: d => `${d.getDate()}. ${['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]}`
+      }
     };
 
     let selectedInterval = '1m';
@@ -657,17 +818,17 @@
 
       const statusText = document.getElementById('api-status-text');
       const statusDot = document.getElementById('api-status-dot');
-      if (statusText) statusText.textContent = 'Henter fra server-API...';
+      if (statusText) statusText.textContent = 'Henter børskurser...';
       if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
 
-      // Saml alle unikke tickers
       const combined = [...state.user.holdings, ...state.dad.holdings];
       const allUniqueTickers = [...new Set(combined.map(item => item.ticker))];
 
       let successCount = 0;
 
       try {
-        const response = await fetch('/api/quotes');
+        const queryParam = encodeURIComponent(allUniqueTickers.join(','));
+        const response = await fetch(`/api/quotes?symbols=${queryParam}`);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -682,20 +843,19 @@
           if (q && typeof q.price === 'number' && q.price > 0) {
             const finalDkkPrice = q.price;
 
-            // Opdater aktien hos begge brugere
             [state.user.holdings, state.dad.holdings].forEach(holdings => {
               const h = holdings.find(item => item.ticker === ticker);
               if (h) {
                 const old = h.currentPrice;
                 h.currentPrice = finalDkkPrice;
-                h.history.push(finalDkkPrice);
-                if (h.history.length > 30) h.history.shift();
 
-                const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
-                if (cell) {
-                  cell.classList.remove('flash-up', 'flash-down');
-                  void cell.offsetWidth;
-                  cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
+                if (Math.abs(finalDkkPrice - old) > 0.01) {
+                  const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
+                  if (cell) {
+                    cell.classList.remove('flash-up', 'flash-down');
+                    void cell.offsetWidth;
+                    cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
+                  }
                 }
               }
             });
@@ -709,111 +869,46 @@
               lastFetched: new Date()
             };
             successCount++;
-          } else {
-            fallbackMicroTick(ticker);
-            apiMetadata[ticker] = {
-              status: 'FALLBACK',
-              rawPrice: null,
-              currency: mapping?.isDK ? 'DKK' : 'USD',
-              changePct: 0,
-              source: 'Venter på børs',
-              lastFetched: new Date()
-            };
           }
         });
 
       } catch (err) {
-        console.warn('API kald mislykkedes, bruger sikker simulering:', err);
-        allUniqueTickers.forEach(ticker => {
-          fallbackMicroTick(ticker);
-          const mapping = TICKER_MAP[ticker];
-          if (!apiMetadata[ticker] || apiMetadata[ticker].status !== 'LIVE') {
-            apiMetadata[ticker] = {
-              status: 'FALLBACK',
-              rawPrice: null,
-              currency: mapping?.isDK ? 'DKK' : 'USD',
-              changePct: 0,
-              source: 'Lokal tilstand',
-              lastFetched: new Date()
-            };
-          } else {
-            successCount++;
-          }
-        });
+        console.warn('API kald ikke tilgængeligt, fastholder verificerede kurser:', err);
       }
 
-      // Opdater historik
-      const userTotal = getPortfolioTotal(state.user);
-      state.user.history.push(userTotal);
-      if (state.user.history.length > 30) state.user.history.shift();
-
-      const dadTotal = getPortfolioTotal(state.dad);
-      state.dad.history.push(dadTotal);
-      if (state.dad.history.length > 30) state.dad.history.shift();
+      // Gem snapshot
+      recordSnapshot();
+      saveCurrentPortfolioState();
 
       lastApiSync = new Date();
       const timeStr = lastApiSync.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      // Opdater status badge
       const totalCount = allUniqueTickers.length;
-      const verifiedPill = document.getElementById('api-verified-pill');
-      
       if (successCount === totalCount && totalCount > 0) {
         if (statusText) statusText.textContent = `Børs-API: Live (${successCount}/${totalCount})`;
         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-        if (verifiedPill) {
-          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]';
-          verifiedPill.textContent = '100% Verificeret Live via Server';
-        }
       } else if (successCount > 0) {
         if (statusText) statusText.textContent = `Børs-API: Delvist (${successCount}/${totalCount})`;
         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        if (verifiedPill) {
-          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]';
-          verifiedPill.textContent = `${successCount} af ${totalCount} live via server`;
-        }
       } else {
-        if (statusText) statusText.textContent = 'Børs-API: Venter';
-        if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        if (verifiedPill) {
-          verifiedPill.className = 'px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold text-[10px]';
-          verifiedPill.textContent = 'Forbindelse afventer';
-        }
+        const { dkOpen, usOpen } = checkMarketStatus();
+        const anyOpen = dkOpen || usOpen;
+        if (statusText) statusText.textContent = anyOpen ? 'Børs-API: Venter på svar' : 'Børser lukkede: Faste kurser';
+        if (statusDot) statusDot.className = anyOpen ? 'w-2 h-2 rounded-full bg-amber-400' : 'w-2 h-2 rounded-full bg-slate-400';
       }
 
       const timeEl = document.getElementById('api-status-time');
       if (timeEl) timeEl.textContent = timeStr;
 
-      const lastSyncLabel = document.getElementById('api-last-sync-label');
-      if (lastSyncLabel) {
-        lastSyncLabel.textContent = `Sidst synkroniseret: ${timeStr} (${successCount} af ${totalCount} aktier hentet)`;
-      }
-
-      // GENTENGNING AF HELE BRUGERFLADEN
       updateMetricsUI();
       refreshChartData();
-      renderApiInspectorTable();
 
       if (refreshIcon) refreshIcon.classList.remove('animate-spin');
       isFetchingApi = false;
 
       if (isManual) {
-        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser synkroniseret!` : 'Forbindelse afventes.');
+        showToast(successCount > 0 ? `${successCount}/${totalCount} kurser opdateret!` : 'Kurser fastholdt.');
       }
-    }
-
-    function fallbackMicroTick(ticker) {
-      [state.user, state.dad].forEach(person => {
-        person.holdings.forEach(stock => {
-          if (stock.ticker === ticker) {
-            const jitter = (Math.random() - 0.495) * 0.001;
-            const updated = parseFloat((stock.currentPrice * (1 + jitter)).toFixed(2));
-            stock.currentPrice = updated;
-            stock.history.push(updated);
-            if (stock.history.length > 30) stock.history.shift();
-          }
-        });
-      });
     }
 
     function updateMetricsUI() {
@@ -850,6 +945,18 @@
 
       const dadBankHeader = document.getElementById('dad-bank-header');
       if (dadBankHeader) dadBankHeader.textContent = `${formatNumber(state.dad.cash, 2)} kr.`;
+
+      const userCountVal = document.getElementById('user-count-val');
+      if (userCountVal) userCountVal.textContent = `${state.user.holdings.length} aktier`;
+
+      const dadCountVal = document.getElementById('dad-count-val');
+      if (dadCountVal) dadCountVal.textContent = `${state.dad.holdings.length} aktier`;
+
+      const userCountBadge = document.getElementById('user-count-badge');
+      if (userCountBadge) userCountBadge.textContent = `${state.user.holdings.length} positioner`;
+
+      const dadCountBadge = document.getElementById('dad-count-badge');
+      if (dadCountBadge) dadCountBadge.textContent = `${state.dad.holdings.length} positioner`;
 
       const userPnlBadge = document.getElementById('user-pnl-badge');
       if (userPnlBadge) {
@@ -979,7 +1086,9 @@
         `;
       }
 
-      lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
 
     function renderApiInspectorTable() {
@@ -1029,15 +1138,28 @@
     }
 
     function initHistoricalData() {
-      const points = 24;
-      for (let i = points; i >= 0; i--) {
-        const uTotal = getPortfolioTotal(state.user);
-        const dTotal = getPortfolioTotal(state.dad);
-        state.user.history.push(uTotal);
-        state.dad.history.push(dTotal);
+      let snapshots = getSnapshots();
+      if (snapshots.length === 0) {
+        const uCurrent = getPortfolioTotal(state.user);
+        const dCurrent = getPortfolioTotal(state.dad);
+        const stockPrices = {};
+        [...state.user.holdings, ...state.dad.holdings].forEach(h => {
+          stockPrices[h.ticker] = h.currentPrice;
+        });
 
-        state.user.holdings.forEach(h => h.history.push(h.currentPrice));
-        state.dad.holdings.forEach(h => h.history.push(h.currentPrice));
+        const now = Date.now();
+        // Opret en realistisk rolig historik uden tilfældige svingninger
+        for (let i = 15; i >= 0; i--) {
+          snapshots.push({
+            time: now - (i * 60 * 1000),
+            user: parseFloat(uCurrent.toFixed(2)),
+            dad: parseFloat(dCurrent.toFixed(2)),
+            stocks: { ...stockPrices }
+          });
+        }
+        try {
+          localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(snapshots));
+        } catch(e) {}
       }
     }
 
@@ -1045,40 +1167,16 @@
       const ctx = document.getElementById('duel-chart');
       if (!ctx) return;
 
-      const labels = Array.from({ length: 25 }, (_, i) => `T-${24 - i}`);
-
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Karl (Teampogi2300)',
-              data: [...state.user.history],
-              borderColor: '#0284c7',
-              backgroundColor: 'rgba(14, 165, 233, 0.08)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              fill: true,
-              pointRadius: 2,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Kim',
-              data: [...state.dad.history],
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99, 102, 241, 0.06)',
-              borderWidth: 2.5,
-              tension: 0.35,
-              fill: true,
-              pointRadius: 2,
-              pointHoverRadius: 5
-            }
-          ]
+          labels: [],
+          datasets: []
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: { duration: 250 },
           interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
@@ -1090,7 +1188,7 @@
               cornerRadius: 10,
               callbacks: {
                 label: function(ctx) {
-                  return ` ${ctx.dataset.label}: ${formatNumber(ctx.parsed.y, 2)} DKK`;
+                  return ` ${ctx.dataset.label}: ${formatNumber(ctx.parsed.y, 2)} kr.`;
                 }
               }
             }
@@ -1098,7 +1196,7 @@
           scales: {
             x: {
               grid: { color: '#f1f5f9' },
-              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0 }
             },
             y: {
               grid: { color: '#e2e8f0' },
@@ -1113,46 +1211,93 @@
       });
     }
 
+    // Hjælpefunktion til at hente registrerede data for et bestemt historisk tidspunkt
+    function getSnapshotAt(history, targetTime, fallbackUser, fallbackDad, selectedAsset) {
+      if (!history || history.length === 0) {
+        return { user: fallbackUser, dad: fallbackDad, stockPrice: null };
+      }
+      let match = null;
+      for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i].time <= targetTime) {
+          match = history[i];
+          break;
+        }
+      }
+      if (!match) {
+        match = history[0];
+      }
+      const stockPrice = (selectedAsset !== 'TOTAL' && match.stocks && match.stocks[selectedAsset])
+        ? match.stocks[selectedAsset]
+        : null;
+
+      return {
+        user: typeof match.user === 'number' ? match.user : fallbackUser,
+        dad: typeof match.dad === 'number' ? match.dad : fallbackDad,
+        stockPrice: stockPrice
+      };
+    }
+
     function refreshChartData() {
       if (!chartInstance) return;
 
-      const conf = INTERVAL_CONFIGS[selectedInterval] || INTERVAL_CONFIGS['1m'];
-      const now = new Date();
+      const conf = INTERVAL_CONFIGS[selectedInterval] || INTERVAL_CONFIGS['1h'];
+      const formatFn = conf.format;
+      const { dkOpen, usOpen } = checkMarketStatus();
+      const anyOpen = dkOpen || usOpen;
+
+      // Statusindikator over grafen
+      const statusPill = document.getElementById('chart-market-status-pill');
+      const subtitle = document.getElementById('chart-subtitle');
+
+      let targetIsOpen = (state.selectedAsset === 'TOTAL') ? anyOpen : isTickerMarketOpen(state.selectedAsset);
+
+      if (statusPill) {
+        if (targetIsOpen) {
+          statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1';
+          statusPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Børs Åben';
+        } else {
+          statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1';
+          statusPill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Børs Lukket (Fast lukkekurs)';
+        }
+      }
+
+      if (subtitle) {
+        subtitle.textContent = targetIsOpen
+          ? `Opdateres automatisk hvert 60. sekund med reelle børskurser`
+          : `Markedet er lukket. Grafen fastholder seneste officielle lukkekurser uden kunstige udsving.`;
+      }
+
+      const snapshots = getSnapshots();
+      const now = Date.now();
+      const currentU = getPortfolioTotal(state.user);
+      const currentD = getPortfolioTotal(state.dad);
+
       const labels = [];
       const userSeries = [];
       const dadSeries = [];
 
-      const currentU = getPortfolioTotal(state.user);
-      const currentD = getPortfolioTotal(state.dad);
-      const formatFn = conf.format || (d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }));
-      const curveMultiplier = conf.curveMultiplier || 1;
-
+      // Generer præcise tidspunkter med eksakt stepMs mellem hvert punkt
       for (let i = conf.points - 1; i >= 0; i--) {
-        const pointDate = new Date(now.getTime() - (i * conf.stepMinutes * 60 * 1000));
+        const pointTime = now - (i * conf.stepMs);
+        const pointDate = new Date(pointTime);
         labels.push(formatFn(pointDate));
 
-        if (i === 0) {
-          userSeries.push(currentU);
-          dadSeries.push(currentD);
+        const dataAtPoint = getSnapshotAt(snapshots, pointTime, currentU, currentD, state.selectedAsset);
+
+        if (state.selectedAsset === 'TOTAL') {
+          userSeries.push(i === 0 ? currentU : dataAtPoint.user);
+          dadSeries.push(i === 0 ? currentD : dataAtPoint.dad);
         } else {
-          const progress = i / conf.points;
-          let historicalU, historicalD;
+          const currentStockPrice = (state.user.holdings.find(h => h.ticker === state.selectedAsset)?.currentPrice)
+            || (state.dad.holdings.find(h => h.ticker === state.selectedAsset)?.currentPrice)
+            || 100;
 
-          if (selectedInterval === '1d') {
-            const baseU = START_CAPITAL + ((currentU - START_CAPITAL) * (1 - progress));
-            const baseD = START_CAPITAL + ((currentD - START_CAPITAL) * (1 - progress));
-            historicalU = baseU + (Math.sin(i * 0.5) * 4500);
-            historicalD = baseD + (Math.cos(i * 0.4) * 3800);
-          } else if (selectedInterval === '1m') {
-            historicalU = currentU - (Math.sin(i * 0.7) * 450);
-            historicalD = currentD - (Math.cos(i * 0.6) * 380);
-          } else {
-            historicalU = currentU - (Math.sin(i * 0.5) * (2000 * curveMultiplier));
-            historicalD = currentD - (Math.cos(i * 0.4) * (1800 * curveMultiplier));
-          }
+          const priceAtPoint = (i === 0 || dataAtPoint.stockPrice === null)
+            ? currentStockPrice
+            : dataAtPoint.stockPrice;
 
-          userSeries.push(parseFloat(historicalU.toFixed(2)));
-          dadSeries.push(parseFloat(historicalD.toFixed(2)));
+          userSeries.push(priceAtPoint);
+          dadSeries.push(priceAtPoint);
         }
       }
 
@@ -1167,8 +1312,10 @@
               borderColor: '#0284c7',
               backgroundColor: 'rgba(14, 165, 233, 0.08)',
               borderWidth: 2.5,
-              tension: 0.35,
-              fill: true
+              tension: 0.1,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 6
             },
             {
               label: 'Kim',
@@ -1176,8 +1323,10 @@
               borderColor: '#6366f1',
               backgroundColor: 'rgba(99, 102, 241, 0.06)',
               borderWidth: 2.5,
-              tension: 0.35,
-              fill: true
+              tension: 0.1,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 6
             }
           ];
         } else if (state.chartView === 'user') {
@@ -1187,8 +1336,10 @@
             borderColor: '#0284c7',
             backgroundColor: 'rgba(14, 165, 233, 0.12)',
             borderWidth: 2.5,
-            tension: 0.35,
-            fill: true
+            tension: 0.1,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
           }];
         } else {
           chartInstance.data.datasets = [{
@@ -1197,49 +1348,41 @@
             borderColor: '#6366f1',
             backgroundColor: 'rgba(99, 102, 241, 0.12)',
             borderWidth: 2.5,
-            tension: 0.35,
-            fill: true
+            tension: 0.1,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
           }];
         }
       } else {
-        const uStock = state.user.holdings.find(h => h.ticker === state.selectedAsset);
-        const dStock = state.dad.holdings.find(h => h.ticker === state.selectedAsset);
+        const uHas = state.user.holdings.some(h => h.ticker === state.selectedAsset);
+        const dHas = state.dad.holdings.some(h => h.ticker === state.selectedAsset);
         const datasets = [];
 
-        const makeStockHistory = (stock) => {
-          const arr = [];
-          for (let i = conf.points - 1; i >= 0; i--) {
-            if (i === 0) {
-              arr.push(stock.currentPrice);
-            } else {
-              const variance = (stock.currentPrice * 0.005 * curveMultiplier) * Math.sin(i * 0.6);
-              const drift = (stock.currentPrice - stock.avgBuy) * (1 - (i / conf.points));
-              arr.push(parseFloat((stock.avgBuy + drift + variance).toFixed(2)));
-            }
-          }
-          return arr;
-        };
-
-        if (uStock) {
+        if (uHas && (state.chartView === 'duel' || state.chartView === 'user')) {
           datasets.push({
-            label: `Karl: ${uStock.ticker}`,
-            data: makeStockHistory(uStock),
+            label: `Karl: ${state.selectedAsset}`,
+            data: userSeries,
             borderColor: '#0284c7',
             backgroundColor: 'rgba(14, 165, 233, 0.08)',
             borderWidth: 2.5,
-            tension: 0.35,
-            fill: true
+            tension: 0.1,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
           });
         }
-        if (dStock) {
+        if (dHas && (state.chartView === 'duel' || state.chartView === 'dad')) {
           datasets.push({
-            label: `Kim: ${dStock.ticker}`,
-            data: makeStockHistory(dStock),
+            label: `Kim: ${state.selectedAsset}`,
+            data: dadSeries,
             borderColor: '#6366f1',
             backgroundColor: 'rgba(99, 102, 241, 0.08)',
             borderWidth: 2.5,
-            tension: 0.35,
-            fill: true
+            tension: 0.1,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
           });
         }
         chartInstance.data.datasets = datasets;
@@ -1326,160 +1469,240 @@
         clockEl.textContent = now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       }
 
-      const day = now.getDay();
-      const hour = now.getHours();
-      const min = now.getMinutes();
-      const timeVal = hour + min / 60;
-      const isWeekday = day >= 1 && day <= 5;
-
-      const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
-      const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
+      const { dkOpen, usOpen } = checkMarketStatus();
 
       const dkBadge = document.getElementById('cph-market-badge');
       if (dkBadge) {
-        dkBadge.className = `inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded ${dkOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`;
+        dkBadge.className = `inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors ${
+          dkOpen 
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+            : 'bg-rose-50 text-rose-700 border border-rose-200'
+        }`;
         dkBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dkOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> DK: ${dkOpen ? 'Åben' : 'Lukket'}`;
       }
 
       const usBadge = document.getElementById('us-market-badge');
       if (usBadge) {
-        usBadge.className = `inline-flex items-center gap-1 font-bold text-[11px] px-2 py-0.5 rounded ${usOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`;
-        usBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${usOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span> US: ${usOpen ? 'Åben' : 'Lukket'}`;
+        usBadge.className = `inline-flex items-center gap-1 font-bold text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded transition-colors ${
+          usOpen 
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+            : 'bg-rose-50 text-rose-700 border border-rose-200'
+        }`;
+        usBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${usOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span> US: ${usOpen ? 'Åben' : 'Lukket'}`;
       }
     }
 
-    function parsePortfolioData(text) {
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const holdings = [];
-      let cash = null;
+    // ==========================================
+    // PORTEFØLJE MANAGER & YAHOO FINANCE LOGIK
+    // ==========================================
 
-      const cashMatch = text.match(/bankkonto[:\s]+([0-9.,]+)\s*kr/i);
-      if (cashMatch) {
-        cash = parseFloat(cashMatch[1].replace(/\./g, '').replace(',', '.'));
-      }
-
-      for (const line of lines) {
-        if (/bankkonto/i.test(line) || /ranking/i.test(line) || /værdipapir/i.test(line)) continue;
-
-        const gavMatch = line.match(/\(([0-9.,]+)\s*kr\.?\)/i);
-        const tokens = line.split(/\s{2,}|\t/).map(t => t.trim()).filter(Boolean);
-
-        if (tokens.length >= 2) {
-          const qty = parseInt(tokens[0].replace(/\./g, ''), 10);
-          const name = tokens[1];
-
-          let buyPrice = 0;
-          if (gavMatch) {
-            buyPrice = parseFloat(gavMatch[1].replace(/\./g, '').replace(',', '.'));
-          } else {
-            const fallbackPriceMatch = line.match(/([0-9.,]+)\s*kr/);
-            if (fallbackPriceMatch) {
-              buyPrice = parseFloat(fallbackPriceMatch[1].replace(/\./g, '').replace(',', '.'));
-            }
-          }
-
-          if (!isNaN(qty) && qty > 0 && name) {
-            const ticker = name.split(' ')[0].toUpperCase();
-            holdings.push({
-              ticker: ticker,
-              name: name,
-              qty: qty,
-              avgBuy: buyPrice || 100,
-              currentPrice: buyPrice || 100,
-              history: []
-            });
-          }
-        }
-      }
-
-      return { holdings, cash };
-    }
-
-    function importPortfolioText() {
-      const text = document.getElementById('import-text-input').value;
-      if (!text.trim()) {
-        showToast('Indsæt venligst tabeltekst først');
-        return;
-      }
-
-      const target = document.querySelector('input[name="importTarget"]:checked').value;
-      const parsed = parsePortfolioData(text);
-
-      if (parsed.holdings.length === 0 && parsed.cash === null) {
-        showToast('Kunne ikke genkende aktier i teksten');
-        return;
-      }
-
-      const person = state[target];
-      if (parsed.holdings.length > 0) person.holdings = parsed.holdings;
-      if (parsed.cash !== null) person.cash = parsed.cash;
-
-      updateAssetDropdown();
-      updateMetricsUI();
-      closeEditModal();
-      fetchLiveStockPrices(false);
-      showToast(`Importerede data for ${person.name}!`);
-    }
-
-    function openEditModal(tab = 'api') {
-      const modal = document.getElementById('edit-modal');
+    function openManageHoldingsModal(person = 'user') {
+      activeModalPerson = person;
+      const modal = document.getElementById('manage-modal');
       if (modal) modal.classList.remove('hidden');
-      switchModalTab(tab);
+      updateManageModalUI();
     }
 
-    function closeEditModal() {
-      const modal = document.getElementById('edit-modal');
+    function closeManageHoldingsModal() {
+      const modal = document.getElementById('manage-modal');
       if (modal) modal.classList.add('hidden');
     }
 
-    function switchModalTab(tab) {
-      const tabs = ['import', 'api', 'settings'];
-      tabs.forEach(t => {
-        const content = document.getElementById(`tab-content-${t}`);
-        const btn = document.getElementById(`tab-btn-${t}`);
-        if (content) content.classList.add('hidden');
-        if (btn) {
-          btn.className = 'px-3.5 py-2 text-xs font-mono font-bold text-slate-500 hover:text-black whitespace-nowrap';
-        }
-      });
+    function switchModalPerson(person) {
+      activeModalPerson = person;
+      updateManageModalUI();
+    }
 
-      const activeContent = document.getElementById(`tab-content-${tab}`);
-      const activeBtn = document.getElementById(`tab-btn-${tab}`);
-      if (activeContent) activeContent.classList.remove('hidden');
-      if (activeBtn) {
-        activeBtn.className = 'px-3.5 py-2 text-xs font-mono font-bold border-b-2 border-frost-600 text-frost-700 whitespace-nowrap';
+    function updateManageModalUI() {
+      const isUser = activeModalPerson === 'user';
+      const person = state[activeModalPerson];
+
+      const titleEl = document.getElementById('modal-manage-title');
+      if (titleEl) titleEl.textContent = `Administrer Portefølje: ${person.name}`;
+
+      const indicator = document.getElementById('modal-person-indicator');
+      if (indicator) indicator.className = `w-3 h-3 rounded-full ${isUser ? 'bg-frost-500' : 'bg-polar-500'}`;
+
+      const btnUser = document.getElementById('modal-btn-person-user');
+      const btnDad = document.getElementById('modal-btn-person-dad');
+      if (btnUser && btnDad) {
+        btnUser.className = isUser
+          ? 'px-3 py-1 rounded-md transition font-bold bg-frost-600 text-white shadow-xs'
+          : 'px-3 py-1 rounded-md transition text-slate-600 hover:text-black';
+        btnDad.className = !isUser
+          ? 'px-3 py-1 rounded-md transition font-bold bg-polar-600 text-white shadow-xs'
+          : 'px-3 py-1 rounded-md transition text-slate-600 hover:text-black';
       }
 
-      if (tab === 'api') {
-        renderApiInspectorTable();
+      const cashInput = document.getElementById('modal-cash-input');
+      if (cashInput) cashInput.value = person.cash;
+
+      renderManageHoldingsTable();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderManageHoldingsTable() {
+      const tbody = document.getElementById('manage-holdings-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const person = state[activeModalPerson];
+
+      person.holdings.forEach((stock, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100 text-xs';
+        tr.innerHTML = `
+          <td class="p-2.5">
+            <span class="font-extrabold text-black block">${stock.ticker}</span>
+            <span class="text-[10px] text-slate-500 block truncate max-w-[150px]">${stock.name}</span>
+          </td>
+          <td class="p-2 text-right">
+            <input type="number" min="0" step="1" value="${stock.qty}" onchange="updateHoldingField(${index}, 'qty', this.value)" class="w-20 p-1.5 text-right font-bold text-black border border-slate-300 rounded-lg focus:ring-1 focus:ring-frost-500 font-mono text-xs" />
+          </td>
+          <td class="p-2 text-right">
+            <input type="number" min="0.01" step="0.01" value="${stock.avgBuy}" onchange="updateHoldingField(${index}, 'avgBuy', this.value)" class="w-24 p-1.5 text-right font-bold text-slate-700 border border-slate-300 rounded-lg focus:ring-1 focus:ring-frost-500 font-mono text-xs" />
+          </td>
+          <td class="p-2.5 text-right font-black text-black">
+            ${formatNumber(stock.currentPrice, 2)} kr.
+          </td>
+          <td class="p-2.5 text-center">
+            <button type="button" onclick="deleteHoldingPosition(${index})" title="Fjern aktie" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateHoldingField(index, field, val) {
+      const person = state[activeModalPerson];
+      const parsedVal = parseFloat(val);
+      if (!isNaN(parsedVal) && parsedVal >= 0) {
+        person.holdings[index][field] = parsedVal;
+        saveCurrentPortfolioState();
+        updateMetricsUI();
+        refreshChartData();
       }
     }
 
-    function saveSettings() {
-      state.user.name = document.getElementById('setting-user-name').value || state.user.name;
-      state.user.cash = parseFloat(document.getElementById('setting-user-cash').value) || state.user.cash;
-
-      state.dad.name = document.getElementById('setting-dad-name').value || state.dad.name;
-      state.dad.cash = parseFloat(document.getElementById('setting-dad-cash').value) || state.dad.cash;
-
+    function deleteHoldingPosition(index) {
+      const person = state[activeModalPerson];
+      const removed = person.holdings.splice(index, 1)[0];
+      saveCurrentPortfolioState();
+      updateAssetDropdown();
       updateMetricsUI();
-      closeEditModal();
-      showToast('Indstillinger er gemt!');
+      refreshChartData();
+      renderManageHoldingsTable();
+      showToast(`${removed.ticker} blev fjernet fra ${person.name}`);
+    }
+
+    function prefillStock(ticker, name) {
+      const tickerInput = document.getElementById('add-ticker-input');
+      const nameInput = document.getElementById('add-name-input');
+      if (tickerInput) tickerInput.value = ticker;
+      if (nameInput) nameInput.value = name;
+    }
+
+    function addNewStockSubmit() {
+      const tickerInput = document.getElementById('add-ticker-input');
+      const nameInput = document.getElementById('add-name-input');
+      const qtyInput = document.getElementById('add-qty-input');
+      const gavInput = document.getElementById('add-gav-input');
+
+      const rawTicker = tickerInput?.value.trim();
+      const ticker = rawTicker ? rawTicker.toUpperCase() : '';
+      const name = nameInput?.value.trim() || ticker;
+      const qty = parseInt(qtyInput?.value, 10);
+      const gav = parseFloat(gavInput?.value);
+
+      if (!ticker) {
+        showToast('Indtast venligst en Yahoo Finance ticker');
+        return;
+      }
+      if (isNaN(qty) || qty <= 0) {
+        showToast('Indtast et gyldigt antal aktier');
+        return;
+      }
+      if (isNaN(gav) || gav <= 0) {
+        showToast('Indtast en gyldig købskurs (GAV)');
+        return;
+      }
+
+      const person = state[activeModalPerson];
+
+      // Tjek om aktien allerede findes
+      const existing = person.holdings.find(h => h.ticker === ticker);
+      if (existing) {
+        existing.qty += qty;
+        existing.avgBuy = gav;
+        showToast(`Opdaterede antal for ${ticker} til ${existing.qty} stk.`);
+      } else {
+        const isDK = ticker.endsWith('.CO');
+        if (!TICKER_MAP[ticker]) {
+          TICKER_MAP[ticker] = {
+            symbol: ticker,
+            name: name,
+            exchange: isDK ? 'CPH (DKK)' : 'US / Global (USD)',
+            isDK: isDK
+          };
+        }
+
+        person.holdings.push({
+          ticker: ticker,
+          name: name,
+          qty: qty,
+          avgBuy: gav,
+          currentPrice: gav
+        });
+        showToast(`${ticker} er tilføjet til ${person.name}!`);
+      }
+
+      // Nulstil formular
+      if (tickerInput) tickerInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (qtyInput) qtyInput.value = '';
+      if (gavInput) gavInput.value = '';
+
+      saveCurrentPortfolioState();
+      updateAssetDropdown();
+      updateMetricsUI();
+      refreshChartData();
+      renderManageHoldingsTable();
+
+      // Hent live kurser for den nye aktie
+      fetchLiveStockPrices(false);
+    }
+
+    function saveCashBalance() {
+      const cashInput = document.getElementById('modal-cash-input');
+      const val = parseFloat(cashInput?.value);
+      if (!isNaN(val) && val >= 0) {
+        state[activeModalPerson].cash = val;
+        saveCurrentPortfolioState();
+        updateMetricsUI();
+        refreshChartData();
+        showToast(`Bankkonto opdateret for ${state[activeModalPerson].name}`);
+      }
     }
 
     // Global eksponering
     window.fetchLiveStockPrices = fetchLiveStockPrices;
-    window.openEditModal = openEditModal;
-    window.closeEditModal = closeEditModal;
-    window.switchModalTab = switchModalTab;
     window.setChartInterval = setChartInterval;
     window.setChartView = setChartView;
     window.setChartAsset = setChartAsset;
     window.viewHoldingChart = viewHoldingChart;
-    window.importPortfolioText = importPortfolioText;
-    window.saveSettings = saveSettings;
+    window.openManageHoldingsModal = openManageHoldingsModal;
+    window.closeManageHoldingsModal = closeManageHoldingsModal;
+    window.switchModalPerson = switchModalPerson;
+    window.updateHoldingField = updateHoldingField;
+    window.deleteHoldingPosition = deleteHoldingPosition;
+    window.prefillStock = prefillStock;
+    window.addNewStockSubmit = addNewStockSubmit;
+    window.saveCashBalance = saveCashBalance;
 
     window.onload = function() {
+      loadSavedPortfolioState();
       initHistoricalData();
       setupChart();
       updateAssetDropdown();
@@ -1497,7 +1720,9 @@
         fetchLiveStockPrices(false);
       }, 60000);
 
-      lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     };
   </script>
 </body>

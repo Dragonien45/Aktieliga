@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS og cache headers (cachet i 30s på edge, 60s stale-while-revalidate)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,6 +12,27 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Kun GET tilladt' });
   }
 
+  // Tjek om de respektive børser er åbne i dansk tid (CET/CEST)
+  const now = new Date();
+  const cphFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Copenhagen',
+    hour12: false,
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric'
+  });
+  const parts = cphFormatter.formatToParts(now);
+  const partMap = {};
+  parts.forEach(p => partMap[p.type] = p.value);
+
+  const isWeekday = !['Sat', 'Sun'].includes(partMap.weekday);
+  const hour = parseInt(partMap.hour, 10);
+  const min = parseInt(partMap.minute, 10);
+  const timeVal = hour + (min / 60);
+
+  const dkOpen = isWeekday && timeVal >= 9.0 && timeVal < 17.0;
+  const usOpen = isWeekday && timeVal >= 15.5 && timeVal < 22.0;
+
   // Standard aktier fra duellen
   const DEFAULT_DANISH = {
     VWS: 'VWS.CO',
@@ -22,7 +42,6 @@ export default async function handler(req, res) {
 
   const DEFAULT_US = ['AMD', 'MSTR', 'GEV', 'TSLA', 'VST', 'SMCI', 'MU', 'FCX', 'VRT'];
 
-  // Læs dynamiske symboler fra URL parameteren ?symbols=NVDA,NOVO-B.CO,...
   let requestedSymbols = [];
   if (req.query.symbols) {
     requestedSymbols = req.query.symbols
@@ -31,7 +50,6 @@ export default async function handler(req, res) {
       .filter(Boolean);
   }
 
-  // Saml alle symboler (standard aktier + dynamisk tilføjede)
   const allSymbolsToFetch = new Set([
     ...Object.keys(DEFAULT_DANISH),
     ...Object.values(DEFAULT_DANISH),
@@ -42,7 +60,7 @@ export default async function handler(req, res) {
   const results = {};
 
   try {
-    // TRIN 1: Hent officiel USD/DKK valutakurs fra Yahoo Finance
+    // TRIN 1: Hent USD/DKK valutakurs fra Yahoo Finance
     let usdDkkRate = 6.85;
     try {
       const fxResp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/USDDKK=X?interval=1d&range=1d', {
@@ -60,7 +78,7 @@ export default async function handler(req, res) {
       console.warn('Brugte fallback USD/DKK kurs (6.85)');
     }
 
-    // TRIN 2: Universel Yahoo Finance fetcher for alle markeder (DKK, USD, EUR mv.)
+    // TRIN 2: Hent aktiekurser fra Yahoo Finance
     const fetchFromYahoo = async (symbol) => {
       try {
         const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`;
@@ -83,7 +101,6 @@ export default async function handler(req, res) {
         const currency = (meta.currency || '').toUpperCase();
         const isDkk = currency === 'DKK' || symbol.endsWith('.CO');
 
-        // Omregning til DKK hvis aktien handles i USD
         const priceInDkk = isDkk ? currentPrice : currentPrice * usdDkkRate;
         const priceInUsd = isDkk ? (currentPrice / usdDkkRate) : currentPrice;
 
@@ -94,16 +111,16 @@ export default async function handler(req, res) {
           currency: isDkk ? 'DKK' : 'USD',
           name: meta.shortName || meta.longName || symbol,
           exchangeName: meta.exchangeName || (isDkk ? 'CPH' : 'US'),
-          source: isDkk ? 'Yahoo Finance (CPH)' : 'Yahoo Finance (US)'
+          source: isDkk ? (dkOpen ? 'Yahoo CPH (Åben)' : 'Lukkekurs (DK Lukket)') : (usOpen ? 'Yahoo US (Åben)' : 'Lukkekurs (US Lukket)'),
+          isOpen: isDkk ? dkOpen : usOpen
         };
       } catch (e) {
         return null;
       }
     };
 
-    // TRIN 3: Hent kurser for samtlige aktier parallelt
+    // TRIN 3: Hent kurser for alle aktier parallelt
     const fetchTasks = Array.from(allSymbolsToFetch).map(async (rawSymbol) => {
-      // Hvis symbolet er en kendt dansk aktie (fx VWS), tilføj Københavns-børs endelsen (.CO)
       let lookupSymbol = rawSymbol;
       if (DEFAULT_DANISH[rawSymbol]) {
         lookupSymbol = DEFAULT_DANISH[rawSymbol];
@@ -111,7 +128,6 @@ export default async function handler(req, res) {
 
       const quoteData = await fetchFromYahoo(lookupSymbol);
       if (quoteData) {
-        // Gem under både opslagssymbolet og basis-tickeren
         results[rawSymbol] = quoteData;
         results[lookupSymbol] = quoteData;
 
@@ -127,7 +143,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       timestamp: new Date().toISOString(),
       usdDkkRate: parseFloat(usdDkkRate.toFixed(4)),
-      source: 'Yahoo Finance 100% Live',
+      marketStatus: { dkOpen, usOpen },
       data: results
     });
 

@@ -130,15 +130,20 @@
           </span>
         </div>
 
-        <!-- Live Børs-API status indicator with manual refresh -->
+        <!-- Sky-database & Live Børs-API status indicators with manual refresh -->
         <div class="flex items-center gap-1.5">
-          <div id="api-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs">
+          <div id="cloud-status-badge" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs cursor-pointer hover:bg-slate-200 transition" title="Sky-database status (klik for at hente fra skyen)" onclick="syncPortfolioWithCloud(false)">
+            <span class="w-2 h-2 rounded-full bg-slate-400" id="cloud-status-dot"></span>
+            <span id="cloud-status-text">Sky: Forbinder...</span>
+          </div>
+
+          <div id="api-status-badge" class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs">
             <span class="w-2 h-2 rounded-full bg-slate-400" id="api-status-dot"></span>
             <span id="api-status-text">Yahoo Finance: Forbinder</span>
             <span class="text-[10px] text-slate-500 font-semibold" id="api-status-time">--:--:--</span>
           </div>
           
-          <button type="button" onclick="fetchLiveStockPrices(true)" title="Opdatér kurser nu (fastholder officielle lukkekurser hvis børsen er lukket)" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
+          <button type="button" onclick="fetchLiveStockPrices(true)" title="Opdatér kurser og hent fra skyen" class="p-2 rounded-xl bg-white border border-slate-300 hover:border-frost-500 text-black hover:text-frost-600 transition shadow-xs">
             <i data-lucide="refresh-cw" class="w-4 h-4" id="api-refresh-icon"></i>
           </button>
         </div>
@@ -531,7 +536,7 @@
             <span class="font-bold text-black flex items-center gap-1.5 text-xs sm:text-sm">
               <i data-lucide="plus" class="w-4 h-4 text-frost-600"></i> Tilføj Ny Aktie (Yahoo Finance)
             </span>
-            <span id="ticker-lookup-status" class="text-[10px] text-slate-500 font-semibold">Gemmes automatisk</span>
+            <span id="ticker-lookup-status" class="text-[10px] text-slate-500 font-semibold">Synkroniseres til skyen</span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
@@ -584,7 +589,7 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <span class="font-bold text-black uppercase tracking-wider text-[11px]">Nuværende Aktier (Ret antal & GAV direkte)</span>
-            <span class="text-[10px] text-slate-500">Gemmes løbende i browseren</span>
+            <span id="modal-save-status" class="text-[10px] text-slate-500 flex items-center gap-1">Synkroniseres til sky-database</span>
           </div>
 
           <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
@@ -687,36 +692,162 @@
 
     let activeModalPerson = 'user';
 
+    let lastCloudSyncTime = null;
+    let cloudSaveTimeout = null;
+
+    function updateCloudStatus(status, text) {
+      const dot = document.getElementById('cloud-status-dot');
+      const label = document.getElementById('cloud-status-text');
+      const badge = document.getElementById('cloud-status-badge');
+      if (!dot || !label) return;
+
+      label.textContent = text;
+      if (status === 'connected') {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        if (badge) badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs cursor-pointer hover:bg-emerald-100 transition';
+      } else if (status === 'syncing') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        if (badge) badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-xs cursor-pointer hover:bg-amber-100 transition';
+      } else if (status === 'disconnected') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (badge) badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-xs cursor-pointer hover:bg-rose-100 transition';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        if (badge) badge.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-xs cursor-pointer hover:bg-slate-200 transition';
+      }
+    }
+
+    function applyPortfolioData(parsed) {
+      if (!parsed) return false;
+      let hasChanges = false;
+      if (parsed.user && Array.isArray(parsed.user.holdings)) {
+        state.user = parsed.user;
+        hasChanges = true;
+      }
+      if (parsed.dad && Array.isArray(parsed.dad.holdings)) {
+        state.dad = parsed.dad;
+        hasChanges = true;
+      }
+      // Registrér dynamiske tickers i TICKER_MAP
+      [...state.user.holdings, ...state.dad.holdings].forEach(h => {
+        if (!TICKER_MAP[h.ticker]) {
+          const isDK = h.ticker.toUpperCase().endsWith('.CO');
+          TICKER_MAP[h.ticker] = {
+            symbol: h.ticker,
+            name: h.name || h.ticker,
+            exchange: isDK ? 'CPH (DKK)' : 'US (USD)',
+            isDK: isDK
+          };
+        }
+      });
+      return hasChanges;
+    }
+
     function loadSavedPortfolioState() {
       try {
         const saved = localStorage.getItem(CUSTOM_STATE_KEY);
         if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.user && Array.isArray(parsed.user.holdings)) {
-            state.user = parsed.user;
-          }
-          if (parsed.dad && Array.isArray(parsed.dad.holdings)) {
-            state.dad = parsed.dad;
-          }
-          // Registrér dynamiske tickers i TICKER_MAP
-          [...state.user.holdings, ...state.dad.holdings].forEach(h => {
-            if (!TICKER_MAP[h.ticker]) {
-              const isDK = h.ticker.toUpperCase().endsWith('.CO');
-              TICKER_MAP[h.ticker] = {
-                symbol: h.ticker,
-                name: h.name || h.ticker,
-                exchange: isDK ? 'CPH (DKK)' : 'US (USD)',
-                isDK: isDK
-              };
-            }
-          });
+          applyPortfolioData(JSON.parse(saved));
         }
       } catch (e) {
-        console.warn('Kunne ikke indlæse gemte porteføljedata', e);
+        console.warn('Kunne ikke indlæse gemte porteføljedata fra localStorage', e);
       }
     }
 
-    function saveCurrentPortfolioState() {
+    async function syncPortfolioWithCloud(silent = false) {
+      try {
+        if (!silent) updateCloudStatus('syncing', 'Henter sky...');
+        const resp = await fetch('/api/portfolio', {
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+
+        if (data.source === 'local_fallback' || !data.connected) {
+          updateCloudStatus('disconnected', 'Sky ikke tilkoblet Vercel');
+          if (!silent) {
+            showToast('Vercel Storage mangler: Tilkobl Upstash Redis i Vercel for at dele porteføljen live.');
+          }
+          return;
+        }
+
+        if (data.user && data.dad) {
+          const changed = applyPortfolioData(data);
+          if (changed) {
+            try {
+              localStorage.setItem(CUSTOM_STATE_KEY, JSON.stringify({
+                user: state.user,
+                dad: state.dad
+              }));
+            } catch (e) {}
+
+            updateMetricsUI();
+            refreshChartData();
+            updateAssetDropdown();
+
+            // Hvis manage modal er åben, genopfrisk visningen
+            const modal = document.getElementById('manage-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+              updateManageModalUI();
+            }
+
+            // Hent livekurser for eventuelle nye aktier
+            fetchLiveStockPrices(false);
+          }
+          lastCloudSyncTime = new Date();
+          updateCloudStatus('connected', 'Sky: Synkroniseret');
+        } else {
+          // Databasen er forbundet på Vercel, men er tom -> upload nuværende startværdier
+          updateCloudStatus('connected', 'Sky: Forbundet');
+          savePortfolioToCloud(true);
+        }
+      } catch (err) {
+        console.warn('Kunne ikke hente portefølje fra skyen:', err);
+        updateCloudStatus('disconnected', 'Sky: Netværksfejl');
+      }
+    }
+
+    async function savePortfolioToCloud(immediate = false) {
+      if (cloudSaveTimeout) clearTimeout(cloudSaveTimeout);
+
+      const performSave = async () => {
+        try {
+          updateCloudStatus('syncing', 'Gemmer i sky...');
+          const resp = await fetch('/api/portfolio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user: state.user,
+              dad: state.dad
+            })
+          });
+
+          const resData = await resp.json();
+          if (resData.saved) {
+            lastCloudSyncTime = new Date();
+            updateCloudStatus('connected', 'Sky: Gemt!');
+            setTimeout(() => updateCloudStatus('connected', 'Sky: Synkroniseret'), 2500);
+          } else if (resData.source === 'local_only' || !resData.connected) {
+            updateCloudStatus('disconnected', 'Kun gemt lokalt');
+            showToast('Advarsel: Gemt lokalt. Upstash Redis mangler på Vercel for at dele data.');
+          } else {
+            updateCloudStatus('disconnected', 'Sky fejl');
+            showToast('Fejl ved gemning i sky-database: ' + (resData.error || 'Ukendt'));
+          }
+        } catch (err) {
+          console.error('Fejl ved skrivning til /api/portfolio:', err);
+          updateCloudStatus('disconnected', 'Sky: Netværksfejl');
+        }
+      };
+
+      if (immediate) {
+        await performSave();
+      } else {
+        cloudSaveTimeout = setTimeout(performSave, 250);
+      }
+    }
+
+    function saveCurrentPortfolioState(syncToCloud = true) {
       try {
         localStorage.setItem(CUSTOM_STATE_KEY, JSON.stringify({
           user: state.user,
@@ -724,6 +855,9 @@
         }));
       } catch (e) {
         console.warn('Kunne ikke gemme portefølje i localStorage', e);
+      }
+      if (syncToCloud) {
+        savePortfolioToCloud();
       }
     }
 
@@ -917,6 +1051,10 @@
       const refreshIcon = document.getElementById('api-refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
+      if (isManual) {
+        syncPortfolioWithCloud(false);
+      }
+
       const statusText = document.getElementById('api-status-text');
       const statusDot = document.getElementById('api-status-dot');
       const { dkOpen, usOpen } = checkMarketStatus();
@@ -1002,9 +1140,9 @@
         console.warn('API kald ikke tilgængeligt, fastholder verificerede kurser:', err);
       }
 
-      // Gem snapshot
+      // Gem snapshot og lokal cache
       recordSnapshot();
-      saveCurrentPortfolioState();
+      saveCurrentPortfolioState(false);
 
       lastApiSync = new Date();
       const timeStr = lastApiSync.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -2005,6 +2143,8 @@
     }
 
     window.fetchLiveStockPrices = fetchLiveStockPrices;
+    window.syncPortfolioWithCloud = syncPortfolioWithCloud;
+    window.savePortfolioToCloud = savePortfolioToCloud;
     window.setChartInterval = setChartInterval;
     window.setChartView = setChartView;
     window.setChartAsset = setChartAsset;
@@ -2032,8 +2172,11 @@
       updateClock();
       setInterval(updateClock, 1000);
 
-      // Første live hentning
+      // Første live hentning af kurser
       fetchLiveStockPrices(false);
+
+      // Hent nyeste delte porteføljedata fra sky-database (Vercel KV / Upstash Redis)
+      syncPortfolioWithCloud(true);
 
       // Tjek hvert 5. minut om klokken er passeret 19:00 CEST for daglig status
       setInterval(() => {
@@ -2043,6 +2186,10 @@
       // Automatisk opdatering hvert 60. sekund
       setInterval(() => {
         const { dkOpen, usOpen } = checkMarketStatus();
+        
+        // Hent eventuelle nye handler udført af den anden person
+        syncPortfolioWithCloud(true);
+
         // Hvis mindst én børs er åben, hentes nye livekurser
         if (dkOpen || usOpen) {
           fetchLiveStockPrices(false);

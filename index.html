@@ -720,14 +720,40 @@
     function applyPortfolioData(parsed) {
       if (!parsed) return false;
       let hasChanges = false;
-      if (parsed.user && Array.isArray(parsed.user.holdings)) {
-        state.user = parsed.user;
-        hasChanges = true;
+
+      const mergeHoldings = (currentHoldings, incomingHoldings) => {
+        if (!Array.isArray(incomingHoldings)) return currentHoldings;
+        return incomingHoldings.map(incoming => {
+          const existing = (currentHoldings || []).find(h => h.ticker === incoming.ticker);
+          const livePrice = existing?.currentPrice;
+          return {
+            ...incoming,
+            // Bevar altid den friske realtids-kurs fra Yahoo Finance
+            currentPrice: (livePrice && livePrice > 0) ? livePrice : (incoming.currentPrice || incoming.avgBuy)
+          };
+        });
+      };
+
+      if (parsed.user) {
+        if (typeof parsed.user.cash === 'number') state.user.cash = parsed.user.cash;
+        if (parsed.user.name) state.user.name = parsed.user.name;
+        if (parsed.user.rank) state.user.rank = parsed.user.rank;
+        if (Array.isArray(parsed.user.holdings)) {
+          state.user.holdings = mergeHoldings(state.user.holdings, parsed.user.holdings);
+          hasChanges = true;
+        }
       }
-      if (parsed.dad && Array.isArray(parsed.dad.holdings)) {
-        state.dad = parsed.dad;
-        hasChanges = true;
+
+      if (parsed.dad) {
+        if (typeof parsed.dad.cash === 'number') state.dad.cash = parsed.dad.cash;
+        if (parsed.dad.name) state.dad.name = parsed.dad.name;
+        if (parsed.dad.rank) state.dad.rank = parsed.dad.rank;
+        if (Array.isArray(parsed.dad.holdings)) {
+          state.dad.holdings = mergeHoldings(state.dad.holdings, parsed.dad.holdings);
+          hasChanges = true;
+        }
       }
+
       // Registrér dynamiske tickers i TICKER_MAP
       [...state.user.holdings, ...state.dad.holdings].forEach(h => {
         if (!TICKER_MAP[h.ticker]) {
@@ -1104,19 +1130,16 @@
               if (h) {
                 const old = h.currentPrice;
 
-                // NØGLEREGEL: Opdater KUN kursen, hvis børsen for denne aktie er ÅBEN,
-                // eller hvis det er første indlæsning / manuel synkronisering af lukkekurser.
-                if (isTickerOpen || !hasInitializedQuotes || isManual) {
-                  h.currentPrice = finalDkkPrice;
+                // Opdater ALTID kursen med den reelle pris fra Yahoo Finance
+                h.currentPrice = finalDkkPrice;
 
-                  // Flash-animationer må KUN køre i åbningstiden, så siden ikke blinker ved lukketid
-                  if (isTickerOpen && Math.abs(finalDkkPrice - old) > 0.01) {
-                    const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
-                    if (cell) {
-                      cell.classList.remove('flash-up', 'flash-down');
-                      void cell.offsetWidth;
-                      cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
-                    }
+                // Flash-animationer må KUN køre i åbningstiden, så siden ikke blinker ved lukketid
+                if (isTickerOpen && Math.abs(finalDkkPrice - old) > 0.01) {
+                  const cell = document.getElementById(`price-${ticker}-${holdings === state.user.holdings ? 'user' : 'dad'}`);
+                  if (cell) {
+                    cell.classList.remove('flash-up', 'flash-down');
+                    void cell.offsetWidth;
+                    cell.classList.add(finalDkkPrice >= old ? 'flash-up' : 'flash-down');
                   }
                 }
               }
@@ -1124,10 +1147,11 @@
 
             apiMetadata[ticker] = {
               status: isTickerOpen ? 'LIVE' : 'CLOSED',
-              rawPrice: q.priceUSD !== null && q.priceUSD !== undefined ? q.priceUSD : q.price,
-              currency: q.priceUSD !== null && q.priceUSD !== undefined ? 'USD' : 'DKK',
+              price: q.price,
+              rawPrice: (typeof q.priceUSD === 'number') ? q.priceUSD : q.price,
+              currency: q.currency || (mapping?.isDK ? 'DKK' : 'USD'),
               changePct: typeof q.changePercent === 'number' ? q.changePercent : 0,
-              source: isTickerOpen ? (mapping?.isDK ? 'Yahoo (CPH Åben)' : 'Yahoo (US Åben)') : 'Officiel Lukkekurs (Børs Lukket)',
+              source: isTickerOpen ? (mapping?.isDK ? 'Yahoo (CPH Åben)' : 'Yahoo (US Åben)') : 'Officiel Lukkekurs (Yahoo)',
               lastFetched: new Date()
             };
             updatedCount++;
@@ -1290,6 +1314,13 @@
         totalCostSum += totalCost;
         totalEquitySum += totalVal;
 
+        const meta = apiMetadata[stock.ticker];
+        const isUsStock = meta?.currency === 'USD' || (!TICKER_MAP[stock.ticker]?.isDK && !stock.ticker.endsWith('.CO'));
+        const priceDisplayHtml = isUsStock && meta?.rawPrice
+          ? `<span class="block text-xs sm:text-sm font-black text-black font-mono">$${formatNumber(meta.rawPrice, 2)}</span>
+             <span class="block text-[10px] text-slate-500 font-semibold font-mono">(${formatNumber(stock.currentPrice, 2)} kr.)</span>`
+          : `<span class="block text-xs sm:text-sm font-black text-black font-mono">${formatNumber(stock.currentPrice, 2)} kr.</span>`;
+
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
@@ -1305,9 +1336,9 @@
             ${isPos ? '+' : ''}${formatNumber(pnlKr, 2)} kr.
             <span class="block text-[10px] font-semibold">(${isPos ? '+' : ''}${formatNumber(pnlPct, 2)}%)</span>
           </td>
-          <td class="p-2.5 sm:p-3 text-right font-black text-black" id="price-${stock.ticker}-${personKey}">
-            ${formatNumber(stock.currentPrice, 2)} kr.
-            <span class="block text-[9px] font-normal text-slate-400 font-mono">${isOpen ? 'LIVE' : 'LUKKET'}</span>
+          <td class="p-2.5 sm:p-3 text-right" id="price-${stock.ticker}-${personKey}">
+            ${priceDisplayHtml}
+            <span class="block text-[9px] font-bold ${isOpen ? 'text-emerald-600' : 'text-slate-400'} font-mono">${isOpen ? '● LIVE' : 'LUKKET'}</span>
           </td>
           <td class="p-2.5 sm:p-3 text-right font-semibold text-slate-600">${formatNumber(stock.avgBuy, 2)} kr.</td>
           <td class="p-2.5 sm:p-3 text-right font-extrabold text-black">${formatNumber(totalVal, 2)} kr.</td>
@@ -1779,6 +1810,12 @@
       const person = state[activeModalPerson];
 
       person.holdings.forEach((stock, index) => {
+        const meta = apiMetadata[stock.ticker];
+        const isUsStock = meta?.currency === 'USD' || (!TICKER_MAP[stock.ticker]?.isDK && !stock.ticker.endsWith('.CO'));
+        const modalPriceDisplay = isUsStock && meta?.rawPrice
+          ? `<span class="block font-bold text-black font-mono">$${formatNumber(meta.rawPrice, 2)}</span><span class="block text-[10px] text-slate-500 font-mono">(${formatNumber(stock.currentPrice, 2)} kr.)</span>`
+          : `<span class="block font-bold text-black font-mono">${formatNumber(stock.currentPrice, 2)} kr.</span>`;
+
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100 text-xs';
         tr.innerHTML = `
@@ -1792,8 +1829,8 @@
           <td class="p-2 text-right">
             <input type="number" min="0.01" step="0.01" value="${stock.avgBuy}" onchange="updateHoldingField(${index}, 'avgBuy', this.value)" class="w-24 p-1.5 text-right font-bold text-slate-700 border border-slate-300 rounded-lg focus:ring-1 focus:ring-frost-500 font-mono text-xs" />
           </td>
-          <td class="p-2.5 text-right font-black text-black">
-            ${formatNumber(stock.currentPrice, 2)} kr.
+          <td class="p-2.5 text-right">
+            ${modalPriceDisplay}
           </td>
           <td class="p-2.5 text-center">
             <button type="button" onclick="deleteHoldingPosition(${index})" title="Fjern aktie" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition">
@@ -2161,7 +2198,7 @@
     window.saveCashBalance = saveCashBalance;
     window.toggleAiCommentary = toggleAiCommentary;
 
-    window.onload = function() {
+    window.onload = async function() {
       loadSavedPortfolioState();
       initHistoricalData();
       setupChart();
@@ -2172,31 +2209,24 @@
       updateClock();
       setInterval(updateClock, 1000);
 
-      // Første live hentning af kurser
-      fetchLiveStockPrices(false);
+      // 1. Hent den delte portefølje fra sky-database (Vercel KV / Upstash Redis)
+      await syncPortfolioWithCloud(true);
 
-      // Hent nyeste delte porteføljedata fra sky-database (Vercel KV / Upstash Redis)
-      syncPortfolioWithCloud(true);
+      // 2. Hent derefter de friske realtids-kurser fra Yahoo Finance
+      await fetchLiveStockPrices(true);
 
       // Tjek hvert 5. minut om klokken er passeret 19:00 CEST for daglig status
       setInterval(() => {
         triggerDailyAiCommentary(false);
       }, 5 * 60 * 1000);
 
-      // Automatisk opdatering hvert 60. sekund
+      // Automatisk opdatering hvert 60. sekund: Hent altid friske kurser fra Yahoo Finance
       setInterval(() => {
-        const { dkOpen, usOpen } = checkMarketStatus();
-        
         // Hent eventuelle nye handler udført af den anden person
         syncPortfolioWithCloud(true);
 
-        // Hvis mindst én børs er åben, hentes nye livekurser
-        if (dkOpen || usOpen) {
-          fetchLiveStockPrices(false);
-        } else {
-          // Begge lukkede: hold kurserne helt fastfrosne
-          refreshChartData();
-        }
+        // Hent ALTID de nyeste livekurser fra Yahoo Finance uanset åbningstid
+        fetchLiveStockPrices(false);
       }, 60000);
 
       if (window.lucide) {

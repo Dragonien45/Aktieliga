@@ -9,30 +9,51 @@ export default async function handler(req, res) {
   }
 
   // Understøtter både Vercel KV og Upstash Redis automatisk
-  const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const rawUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const rawToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const KV_URL = rawUrl ? rawUrl.trim().replace(/^["']|["']$/g, '').replace(/\/$/, '') : null;
+  const KV_TOKEN = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : null;
   const STORAGE_KEY = 'aktieligaen_shared_portfolios_v1';
 
   if (req.method === 'GET') {
     if (!KV_URL || !KV_TOKEN) {
       return res.status(200).json({
         source: 'local_fallback',
-        message: 'Vercel Storage er ikke tilkoblet endnu. Læs vejledningen for 1-klik opsætning.',
+        connected: false,
+        message: 'Vercel Storage / Upstash Redis er ikke tilkoblet endnu.',
         user: null,
         dad: null
       });
     }
 
     try {
+      let portfolio = null;
+
+      // 1. Prøv standard Upstash REST /get/key
       const kvResp = await fetch(`${KV_URL}/get/${STORAGE_KEY}`, {
         headers: { Authorization: `Bearer ${KV_TOKEN}` },
-        signal: AbortSignal.timeout(3500)
+        signal: AbortSignal.timeout(4000)
       });
 
-      if (!kvResp.ok) throw new Error(`KV HTTP ${kvResp.status}`);
-
-      const data = await kvResp.json();
-      let portfolio = data.result;
+      if (kvResp.ok) {
+        const data = await kvResp.json();
+        portfolio = data.result;
+      } else {
+        // Fallback til body-style array GET
+        const cmdResp = await fetch(KV_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${KV_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(['GET', STORAGE_KEY]),
+          signal: AbortSignal.timeout(4000)
+        });
+        if (cmdResp.ok) {
+          const cmdData = await cmdResp.json();
+          portfolio = cmdData.result;
+        }
+      }
 
       if (typeof portfolio === 'string') {
         try {
@@ -42,17 +63,25 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         source: 'cloud_kv',
+        connected: true,
         user: portfolio?.user || null,
-        dad: portfolio?.dad || null
+        dad: portfolio?.dad || null,
+        updatedAt: portfolio?.updatedAt || null
       });
     } catch (err) {
       console.warn('Fejl ved læsning fra sky-database:', err.message);
-      return res.status(200).json({ source: 'error_fallback', error: err.message, user: null, dad: null });
+      return res.status(200).json({ source: 'error_fallback', connected: false, error: err.message, user: null, dad: null });
     }
   }
 
   if (req.method === 'POST') {
-    const { user, dad } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {}
+    }
+    const { user, dad } = body || {};
 
     if (!user || !dad) {
       return res.status(400).json({ error: 'Ugyldigt payload: Både user og dad data er påkrævet' });
@@ -61,34 +90,50 @@ export default async function handler(req, res) {
     if (!KV_URL || !KV_TOKEN) {
       return res.status(200).json({
         saved: false,
+        connected: false,
         source: 'local_only',
         message: 'Data blev kun gemt lokalt. Tilkobl Vercel Storage for at dele mellem computere.'
       });
     }
 
     try {
-      const payloadString = JSON.stringify({ user, dad, updatedAt: new Date().toISOString() });
+      const payload = { user, dad, updatedAt: new Date().toISOString() };
+      const payloadString = JSON.stringify(payload);
       
-      const kvResp = await fetch(`${KV_URL}/set/${STORAGE_KEY}`, {
+      // Brug Upstash command-array POST (anbefalet af Upstash)
+      let kvResp = await fetch(KV_URL, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${KV_TOKEN}`,
           'Content-Type': 'application/json'
         },
-        body: payloadString,
-        signal: AbortSignal.timeout(4000)
+        body: JSON.stringify(['SET', STORAGE_KEY, payloadString]),
+        signal: AbortSignal.timeout(5000)
       });
 
-      if (!kvResp.ok) throw new Error(`KV SET HTTP ${kvResp.status}`);
+      if (!kvResp.ok) {
+        // Fallback til /set/${STORAGE_KEY}
+        kvResp = await fetch(`${KV_URL}/set/${STORAGE_KEY}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${KV_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: payloadString,
+          signal: AbortSignal.timeout(5000)
+        });
+        if (!kvResp.ok) throw new Error(`KV SET HTTP ${kvResp.status}`);
+      }
 
       return res.status(200).json({
         saved: true,
+        connected: true,
         source: 'cloud_kv',
-        timestamp: new Date().toISOString()
+        timestamp: payload.updatedAt
       });
     } catch (err) {
       console.error('Fejl ved skrivning til sky-database:', err.message);
-      return res.status(500).json({ error: err.message, saved: false });
+      return res.status(500).json({ error: err.message, saved: false, connected: true });
     }
   }
 

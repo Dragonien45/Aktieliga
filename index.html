@@ -639,6 +639,31 @@
       'VWS': { symbol: 'VWS.CO', name: 'Vestas Wind Systems', exchange: 'CPH (DKK)', isDK: true },
       'GN': { symbol: 'GN.CO', name: 'GN Store Nord', exchange: 'CPH (DKK)', isDK: true },
       'DNORD': { symbol: 'DNORD.CO', name: 'D/S Norden', exchange: 'CPH (DKK)', isDK: true },
+      'NOVO-B': { symbol: 'NOVO-B.CO', name: 'Novo Nordisk B', exchange: 'CPH (DKK)', isDK: true },
+      'CARL-B': { symbol: 'CARL-B.CO', name: 'Carlsberg B', exchange: 'CPH (DKK)', isDK: true },
+      'DSV': { symbol: 'DSV.CO', name: 'DSV A/S', exchange: 'CPH (DKK)', isDK: true },
+      'MAERSK-B': { symbol: 'MAERSK-B.CO', name: 'A.P. Møller - Mærsk B', exchange: 'CPH (DKK)', isDK: true },
+      'ORSTED': { symbol: 'ORSTED.CO', name: 'Ørsted', exchange: 'CPH (DKK)', isDK: true },
+      'PNDORA': { symbol: 'PNDORA.CO', name: 'Pandora', exchange: 'CPH (DKK)', isDK: true },
+      'DEMANT': { symbol: 'DEMANT.CO', name: 'Demant', exchange: 'CPH (DKK)', isDK: true },
+      'TRYG': { symbol: 'TRYG.CO', name: 'Tryg', exchange: 'CPH (DKK)', isDK: true },
+      'DANSKE': { symbol: 'DANSKE.CO', name: 'Danske Bank', exchange: 'CPH (DKK)', isDK: true },
+      'COLO-B': { symbol: 'COLO-B.CO', name: 'Coloplast B', exchange: 'CPH (DKK)', isDK: true },
+      'GEN': { symbol: 'GEN.CO', name: 'Genmab', exchange: 'CPH (DKK)', isDK: true },
+      'BAVA': { symbol: 'BAVA.CO', name: 'Bavarian Nordic', exchange: 'CPH (DKK)', isDK: true },
+      'ISS': { symbol: 'ISS.CO', name: 'ISS A/S', exchange: 'CPH (DKK)', isDK: true },
+      'ROCK-B': { symbol: 'ROCK-B.CO', name: 'Rockwool B', exchange: 'CPH (DKK)', isDK: true },
+      'RBREW': { symbol: 'RBREW.CO', name: 'Royal Unibrew', exchange: 'CPH (DKK)', isDK: true },
+      'NETC': { symbol: 'NETC.CO', name: 'Netcompany Group', exchange: 'CPH (DKK)', isDK: true },
+      'TOP': { symbol: 'TOP.CO', name: 'Topdanmark', exchange: 'CPH (DKK)', isDK: true },
+      'FLS': { symbol: 'FLS.CO', name: 'FLSmidth & Co', exchange: 'CPH (DKK)', isDK: true },
+      'ZEAL': { symbol: 'ZEAL.CO', name: 'Zealand Pharma', exchange: 'CPH (DKK)', isDK: true },
+      'NKT': { symbol: 'NKT.CO', name: 'NKT A/S', exchange: 'CPH (DKK)', isDK: true },
+      'AMBU-B': { symbol: 'AMBU-B.CO', name: 'Ambu B', exchange: 'CPH (DKK)', isDK: true },
+      'JYSK': { symbol: 'JYSK.CO', name: 'Jyske Bank', exchange: 'CPH (DKK)', isDK: true },
+      'SYDB': { symbol: 'SYDB.CO', name: 'Sydbank', exchange: 'CPH (DKK)', isDK: true },
+      'RILBA': { symbol: 'RILBA.CO', name: 'Ringkjøbing Landbobank', exchange: 'CPH (DKK)', isDK: true },
+      'TRMD': { symbol: 'TRMD.CO', name: 'Torm plc', exchange: 'CPH (DKK)', isDK: true },
       'AMD': { symbol: 'AMD', name: 'Advanced Micro Devices', exchange: 'NASDAQ (USD)', isDK: false },
       'MSTR': { symbol: 'MSTR', name: 'Strategy Inc', exchange: 'NASDAQ (USD)', isDK: false },
       'GEV': { symbol: 'GEV', name: 'GE Vernova', exchange: 'NYSE (USD)', isDK: false },
@@ -756,14 +781,22 @@
 
       // Registrér dynamiske tickers i TICKER_MAP
       [...state.user.holdings, ...state.dad.holdings].forEach(h => {
+        const upper = h.ticker.toUpperCase();
+        const isDK = upper.endsWith('.CO') || ['VWS','GN','DNORD','NOVO-B','CARL-B','DSV','MAERSK-B','ORSTED','PNDORA','DEMANT','TRYG','DANSKE','COLO-B','GEN','BAVA','ISS','ROCK-B','RBREW','NETC','TOP','FLS','ZEAL','NKT','AMBU-B','JYSK','SYDB','RILBA','TRMD'].includes(upper);
         if (!TICKER_MAP[h.ticker]) {
-          const isDK = h.ticker.toUpperCase().endsWith('.CO');
+          const resolvedSym = isDK && !upper.endsWith('.CO') ? `${upper}.CO` : h.ticker;
           TICKER_MAP[h.ticker] = {
-            symbol: h.ticker,
+            symbol: resolvedSym,
             name: h.name || h.ticker,
             exchange: isDK ? 'CPH (DKK)' : 'US (USD)',
             isDK: isDK
           };
+        } else if (isDK) {
+          TICKER_MAP[h.ticker].isDK = true;
+          TICKER_MAP[h.ticker].exchange = 'CPH (DKK)';
+          if (!TICKER_MAP[h.ticker].symbol.includes('.')) {
+            TICKER_MAP[h.ticker].symbol = `${upper}.CO`;
+          }
         }
       });
       return hasChanges;
@@ -916,10 +949,13 @@
     }
 
     function isTickerMarketOpen(ticker) {
-      const info = TICKER_MAP[ticker];
+      if (!ticker) return true;
+      const upper = ticker.toUpperCase();
+      const info = TICKER_MAP[ticker] || TICKER_MAP[upper];
+      const meta = apiMetadata[ticker] || apiMetadata[upper];
       const { dkOpen, usOpen } = checkMarketStatus();
-      if (!info) return dkOpen || usOpen;
-      return info.isDK ? dkOpen : usOpen;
+      const isDK = (info && info.isDK) || (meta && (meta.currency === 'DKK' || meta.exchangeName === 'CPH' || meta.isDK)) || upper.endsWith('.CO');
+      return isDK ? dkOpen : usOpen;
     }
 
     // Tjekker om et historisk tidspunkt faldt i åbningstiden for en børs
@@ -1116,14 +1152,35 @@
           const mapping = TICKER_MAP[ticker];
           const yahooSym = mapping?.symbol || ticker;
           const isTickerOpen = isTickerMarketOpen(ticker);
+          const upper = ticker.toUpperCase();
+          const base = upper.replace(/\.CO$/i, '');
+          const withCo = upper.endsWith('.CO') ? upper : `${upper}.CO`;
 
           const q = quotes[ticker] || 
                     quotes[yahooSym] || 
-                    quotes[ticker.toUpperCase()] || 
-                    quotes[yahooSym.toUpperCase()];
+                    quotes[upper] || 
+                    quotes[base] ||
+                    quotes[withCo] ||
+                    (yahooSym ? quotes[yahooSym.toUpperCase()] : null);
 
           if (q && typeof q.price === 'number' && q.price > 0) {
             const finalDkkPrice = q.price;
+            const isDK = q.isDK ?? (q.currency === 'DKK' || q.exchangeName === 'CPH' || upper.endsWith('.CO') || (yahooSym && yahooSym.toUpperCase().endsWith('.CO')));
+
+            if (!TICKER_MAP[ticker]) {
+              TICKER_MAP[ticker] = {
+                symbol: q.symbol || yahooSym || ticker,
+                name: q.name || ticker,
+                exchange: isDK ? 'CPH (DKK)' : 'US (USD)',
+                isDK: isDK
+              };
+            } else if (isDK) {
+              TICKER_MAP[ticker].isDK = true;
+              TICKER_MAP[ticker].exchange = 'CPH (DKK)';
+              if (!TICKER_MAP[ticker].symbol.includes('.')) {
+                TICKER_MAP[ticker].symbol = q.symbol || withCo;
+              }
+            }
 
             [state.user.holdings, state.dad.holdings].forEach(holdings => {
               const h = holdings.find(item => item.ticker === ticker);
@@ -1148,10 +1205,11 @@
             apiMetadata[ticker] = {
               status: isTickerOpen ? 'LIVE' : 'CLOSED',
               price: q.price,
-              rawPrice: (typeof q.priceUSD === 'number') ? q.priceUSD : q.price,
-              currency: q.currency || (mapping?.isDK ? 'DKK' : 'USD'),
+              rawPrice: (typeof q.rawPrice === 'number') ? q.rawPrice : ((typeof q.priceUSD === 'number' && !isDK) ? q.priceUSD : q.price),
+              currency: q.currency || (isDK ? 'DKK' : 'USD'),
               changePct: typeof q.changePercent === 'number' ? q.changePercent : 0,
-              source: isTickerOpen ? (mapping?.isDK ? 'Yahoo (CPH Åben)' : 'Yahoo (US Åben)') : 'Officiel Lukkekurs (Yahoo)',
+              source: q.source || (isTickerOpen ? (isDK ? 'Yahoo (CPH Åben)' : 'Yahoo (US Åben)') : 'Officiel Lukkekurs (Yahoo)'),
+              isDK: isDK,
               lastFetched: new Date()
             };
             updatedCount++;
@@ -1315,7 +1373,10 @@
         totalEquitySum += totalVal;
 
         const meta = apiMetadata[stock.ticker];
-        const isUsStock = meta?.currency === 'USD' || (!TICKER_MAP[stock.ticker]?.isDK && !stock.ticker.endsWith('.CO'));
+        const isDkStock = (meta && (meta.currency === 'DKK' || meta.exchangeName === 'CPH' || meta.isDK)) ||
+                          TICKER_MAP[stock.ticker]?.isDK ||
+                          stock.ticker.toUpperCase().endsWith('.CO');
+        const isUsStock = !isDkStock && (meta?.currency === 'USD' || (!meta?.currency && !TICKER_MAP[stock.ticker]?.isDK));
         const priceDisplayHtml = isUsStock && meta?.rawPrice
           ? `<span class="block text-xs sm:text-sm font-black text-black font-mono">$${formatNumber(meta.rawPrice, 2)}</span>
              <span class="block text-[10px] text-slate-500 font-semibold font-mono">(${formatNumber(stock.currentPrice, 2)} kr.)</span>`
@@ -1811,7 +1872,10 @@
 
       person.holdings.forEach((stock, index) => {
         const meta = apiMetadata[stock.ticker];
-        const isUsStock = meta?.currency === 'USD' || (!TICKER_MAP[stock.ticker]?.isDK && !stock.ticker.endsWith('.CO'));
+        const isDkStock = (meta && (meta.currency === 'DKK' || meta.exchangeName === 'CPH' || meta.isDK)) ||
+                          TICKER_MAP[stock.ticker]?.isDK ||
+                          stock.ticker.toUpperCase().endsWith('.CO');
+        const isUsStock = !isDkStock && (meta?.currency === 'USD' || (!meta?.currency && !TICKER_MAP[stock.ticker]?.isDK));
         const modalPriceDisplay = isUsStock && meta?.rawPrice
           ? `<span class="block font-bold text-black font-mono">$${formatNumber(meta.rawPrice, 2)}</span><span class="block text-[10px] text-slate-500 font-mono">(${formatNumber(stock.currentPrice, 2)} kr.)</span>`
           : `<span class="block font-bold text-black font-mono">${formatNumber(stock.currentPrice, 2)} kr.</span>`;
@@ -1899,17 +1963,31 @@
         
         const json = await response.json();
         const quotes = json.data || json;
-        const q = quotes[ticker] || quotes[ticker.toLowerCase()] || Object.values(quotes)[0];
+        const upper = ticker.toUpperCase();
+        const base = upper.replace(/\.CO$/i, '');
+        const withCo = upper.endsWith('.CO') ? upper : `${upper}.CO`;
+
+        const q = quotes[ticker] || 
+                  quotes[upper] || 
+                  quotes[base] || 
+                  quotes[withCo] || 
+                  quotes[ticker.toLowerCase()] || 
+                  Object.values(quotes)[0];
 
         if (q && typeof q.price === 'number' && q.price > 0) {
           lastLookupData = q;
           if (nameInput && !nameInput.value.trim() && q.name) {
             nameInput.value = q.name;
           }
+          if (q.symbol && q.symbol.toUpperCase().endsWith('.CO') && !ticker.includes('.')) {
+            tickerInput.value = q.symbol;
+          }
 
           if (banner && bannerText) {
             banner.classList.remove('hidden');
-            bannerText.textContent = `✓ Fundet: ${q.name || ticker} — Kurs: ${formatNumber(q.price, 2)} DKK${q.priceUSD ? ` ($${formatNumber(q.priceUSD, 2)})` : ''}`;
+            const isDK = q.isDK ?? (q.currency === 'DKK' || q.exchangeName === 'CPH');
+            const exchangeBadge = isDK ? 'CPH (DKK)' : `${q.currency || 'USD'}`;
+            bannerText.textContent = `✓ Fundet: ${q.name || ticker} — Kurs: ${formatNumber(q.price, 2)} DKK${!isDK && q.rawPrice ? ` ($${formatNumber(q.rawPrice, 2)})` : ''} [${exchangeBadge}]`;
           }
           if (statusEl) {
             statusEl.textContent = 'Verificeret kurs!';
@@ -1975,14 +2053,20 @@
         existing.currentPrice = initialPrice;
         showToast(`Opdaterede antal for ${ticker} til ${existing.qty} stk.`);
       } else {
-        const isDK = ticker.endsWith('.CO');
+        const isDK = (lastLookupData && (lastLookupData.isDK || lastLookupData.currency === 'DKK' || lastLookupData.exchangeName === 'CPH')) || ticker.endsWith('.CO') || TICKER_MAP[ticker]?.isDK;
+        const resolvedSymbol = (lastLookupData && lastLookupData.symbol) ? lastLookupData.symbol : (isDK && !ticker.includes('.') ? `${ticker}.CO` : ticker);
+
         if (!TICKER_MAP[ticker]) {
           TICKER_MAP[ticker] = {
-            symbol: ticker,
+            symbol: resolvedSymbol,
             name: name,
             exchange: isDK ? 'CPH (DKK)' : 'US / Global (USD)',
             isDK: isDK
           };
+        } else if (isDK) {
+          TICKER_MAP[ticker].isDK = true;
+          TICKER_MAP[ticker].exchange = 'CPH (DKK)';
+          TICKER_MAP[ticker].symbol = resolvedSymbol;
         }
 
         person.holdings.push({
